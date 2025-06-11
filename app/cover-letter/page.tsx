@@ -179,8 +179,22 @@ export default function CoverLetterPage() {
       }
     }
 
+    const triggerBrowserUIHide = () => {
+      // Simple browser UI hiding technique
+      if (isMobile && window.scrollY === 0) {
+        // Small scroll to encourage Chrome UI hiding
+        window.scrollTo(0, 1)
+        setTimeout(() => window.scrollTo(0, 0), 50)
+      }
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    
+    // Trigger browser UI hiding on page load for mobile
+    if (isMobile) {
+      setTimeout(triggerBrowserUIHide, 1000)
+    }
 
     return () => {
       // Restore original positioning when leaving the page
@@ -198,7 +212,7 @@ export default function CoverLetterPage() {
   }, [lastScrollY])
 
   return (
-    <div className="cover-letter-page max-w-full overflow-x-hidden">
+    <div className="cover-letter-page">
       {/* Full-Screen Editor */}
       {editingSection && (
         <div className="fixed inset-0 bg-black z-[100] flex flex-col">
@@ -416,10 +430,22 @@ export default function CoverLetterPage() {
         </div>
       )}
 
-      <div className="text-[#ffffff] relative max-w-full overflow-x-hidden">
-        {/* Header */}
-        <div className="sticky top-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm">
-          <div className="flex justify-end items-center p-4">
+      <div className="text-[#ffffff] relative">
+                        {/* Header - Fixed with Progressive Blur */}
+        <div className="fixed top-0 left-0 right-0 z-50 h-20" style={{ transform: 'translateZ(0)' }}>
+          {/* Single progressive blur layer */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div 
+              className="absolute inset-0"
+              style={{
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0) 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0) 100%)'
+              }}
+            ></div>
+          </div>
+          <div className="flex justify-end items-center p-4 relative z-10 h-full">
             <div className="flex gap-3">
               <button 
                 className="flex items-center gap-2 px-4 py-2"
@@ -466,7 +492,7 @@ export default function CoverLetterPage() {
         </div>
 
         {/* Main Content */}
-        <div className="px-4 pb-32 space-y-6">
+        <div className="main-content px-4 pb-32 pt-20 space-y-6">
           {/* Proven Impact Section */}
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">

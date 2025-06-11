@@ -51,23 +51,8 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  /* Prevent horizontal scroll */
-  height: 100vh;
-  height: 100svh; /* Support for small viewport height */
-  width: 100vw;
-  width: 100svw; /* Support for small viewport width */
-  position: fixed;
-  top: 0;
-  left: 0;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-  /* Chrome mobile optimizations */
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+  margin: 0;
+  padding: 0;
 }
 
 @layer utilities {
@@ -76,22 +61,19 @@ body {
   }
 }
 
-/* Chrome Mobile Browser UI Hiding Optimizations */
-@supports (-webkit-touch-callout: none) {
-  /* iOS Safari and Chrome mobile specific styles */
-  body {
-    /* Force height to be slightly larger than viewport to enable scrolling */
-    min-height: calc(100vh + 1px);
-    min-height: calc(100svh + 1px);
-    min-height: calc(100dvh + 1px);
-  }
-}
+
 
 /* Cover Letter Page Specific Styles for Mobile Browser UI Hiding */
 .cover-letter-page {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Smooth scrolling optimization for the main content area */
+.cover-letter-page .main-content {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media screen and (max-width: 768px) {
@@ -193,48 +175,11 @@ body {
     color: #ffffff !important;
     background: #000000 !important;
     background-image: url('/Images/bg.png') !important;
-    background-size: auto 100vh !important;
+    background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
   }
 }
 
-/* Responsive scaling for smaller devices */
-@media (max-width: 390px) {
-  html {
-    font-size: 14px; /* Scale down base font size */
-  }
-  
-  body {
-    transform: scale(0.9);
-    transform-origin: top center;
-    width: 111.11%; /* Compensate for scale to maintain full width */
-    margin-left: -5.56%; /* Center the scaled content */
-  }
-}
 
-@media (max-width: 360px) {
-  html {
-    font-size: 13px;
-  }
-  
-  body {
-    transform: scale(0.85);
-    transform-origin: top center;
-    width: 117.65%;
-    margin-left: -8.82%;
-  }
-}
-
-@media (max-width: 320px) {
-  html {
-    font-size: 12px;
-  }
-  
-  body {
-    transform: scale(0.8);
-    transform-origin: top center;
-    width: 125%;
-    margin-left: -12.5%;
-  }
-}

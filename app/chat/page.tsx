@@ -41,6 +41,14 @@ function ChatContent() {
         }
       }
     }
+    
+    // Auto-focus on textarea when coming from "Write about you"
+    if (fromSource === 'write' && textareaRef.current) {
+      // Small delay to ensure component is fully mounted
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 100)
+    }
   }, [fromSource])
 
   const handleBack = () => {
@@ -135,7 +143,13 @@ function ChatContent() {
           {/* Expandable textarea area */}
           <div className="flex-1 px-4 mb-3">
             <textarea
-              placeholder={fromSource === 'write' ? "Write something about yourself" : "Add context about your document"}
+              placeholder={
+                fromSource === 'write' 
+                  ? "Write something about yourself" 
+                  : fromSource === 'portfolio'
+                  ? "Enter your portfolio URL or share details about your work"
+                  : "Add context about your document"
+              }
               className="bg-transparent border-none outline-none w-full h-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -185,7 +199,7 @@ function ChatContent() {
         className="hidden"
       />
       
-      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden bg-black max-w-full">
+      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden bg-black">
         {/* Header with Back Button */}
         <div className="flex items-center border-b border-white/10">
           <button 
@@ -269,7 +283,13 @@ function ChatContent() {
             <div className="mb-4">
               <textarea
                 ref={textareaRef}
-                placeholder={fromSource === 'write' ? "Write something about yourself" : "Add context about your document"}
+                placeholder={
+                  fromSource === 'write' 
+                    ? "Write something about yourself" 
+                    : fromSource === 'portfolio'
+                    ? "Enter your portfolio URL or share details about your work"
+                    : "Add context about your document"
+                }
                 className="bg-transparent border-none outline-none w-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none overflow-hidden"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}

@@ -23,6 +23,7 @@ export default function CoverIoApp() {
   }, [])
 
   const handleAddDocument = () => {
+    console.log('Add document clicked')
     fileInputRef.current?.click()
   }
 
@@ -48,7 +49,13 @@ export default function CoverIoApp() {
   }
 
   const handleWriteAboutYou = () => {
+    console.log('Write about you clicked')
     router.push('/chat?from=write')
+  }
+
+  const handlePortfolioURL = () => {
+    console.log('Portfolio URL clicked')
+    router.push('/chat?from=portfolio')
   }
 
   return (
@@ -62,7 +69,7 @@ export default function CoverIoApp() {
         className="hidden"
       />
       
-      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden max-w-full" style={{ touchAction: 'none' }}>
+      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden">
         {/* Profile Avatar */}
         <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden">
           <div className="flex flex-col items-center">
@@ -86,11 +93,12 @@ export default function CoverIoApp() {
               >
                 <button 
                   onClick={handleAddDocument}
-                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px]"
+                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px] cursor-pointer"
                   style={{
                     background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
                     boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
                     backdropFilter: 'blur(20.39114761352539px)',
+                    pointerEvents: 'auto'
                   }}
                 >
                   <CustomIcon name="file-text, document" size={20} />
@@ -105,11 +113,13 @@ export default function CoverIoApp() {
                 }}
               >
                 <button 
-                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px]"
+                  onClick={handlePortfolioURL}
+                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px] cursor-pointer"
                   style={{
                     background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
                     boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
                     backdropFilter: 'blur(20.39114761352539px)',
+                    pointerEvents: 'auto'
                   }}
                 >
                   <CustomIcon name="link" size={20} />
@@ -128,11 +138,12 @@ export default function CoverIoApp() {
               >
                 <button 
                   onClick={handleWriteAboutYou}
-                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px]"
+                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px] cursor-pointer"
                   style={{
                     background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
                     boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
                     backdropFilter: 'blur(20.39114761352539px)',
+                    pointerEvents: 'auto'
                   }}
                 >
                   <CustomIcon name="write" size={20} />
