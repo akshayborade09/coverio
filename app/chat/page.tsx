@@ -187,29 +187,25 @@ function ChatContent() {
       
       <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden bg-black">
         {/* Header with Back Button */}
-        <div className="flex items-center p-4 border-b border-white/10">
+        <div className="flex items-center border-b border-white/10">
           <button 
             onClick={handleBack}
-            className="w-10 h-10 flex items-center justify-center rounded-full mr-3"
+            className="w-10 h-10 flex items-center justify-center rounded-full m-4"
             style={{
               background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
               backdropFilter: 'blur(10.67px)',
+              padding: '16px',
             }}
           >
             <CustomIcon name="back" size={20} className="text-white" />
           </button>
-          <h1 className="text-xl font-sans">
-            {fromSource === 'write' ? 'Write About You' : 'Add Document'}
-          </h1>
         </div>
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-center text-white opacity-40">
-                <p>{fromSource === 'write' ? 'Start writing about yourself...' : 'Add context about your document...'}</p>
-              </div>
+              {/* Empty state - no text */}
             </div>
           ) : (
             messages.map((message) => (
