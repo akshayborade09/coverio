@@ -10,6 +10,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'sans': ['Open Sauce One', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'open-sauce-one': ['Open Sauce One', 'Inter', 'sans-serif'],
+      },
       colors: {
         background: "#000000",
         foreground: "#ffffff",

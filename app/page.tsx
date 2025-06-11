@@ -1,79 +1,103 @@
 "use client"
 
-import { useState } from "react"
-import { FileText, LucideLink, Upload, Paperclip, Home, FileLineChartIcon as FileLines, Layout } from "lucide-react"
-import Link from "next/link"
+import { useState, useRef } from "react"
+import CustomIcon from "@/components/CustomIcon"
+import BottomNavigation from "@/components/BottomNavigation"
 
 export default function CoverIoApp() {
   const [inputValue, setInputValue] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAddDocument = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      console.log("Selected file:", file.name)
+      // Handle file upload logic here
+    }
+  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#000000] text-[#ffffff] relative">
-      {/* Profile Avatar */}
-      <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden">
-        <div className="flex flex-col items-center">
-          <div className="w-1 h-1 bg-black rounded-full mb-1"></div>
-          <div className="w-4 h-1 bg-black rounded-full"></div>
+    <>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.txt"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      
+      <div className="flex flex-col min-h-screen text-[#ffffff] relative pb-32">
+        {/* Profile Avatar */}
+        <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden">
+          <div className="flex flex-col items-center">
+            <div className="w-1 h-1 bg-black rounded-full mb-1"></div>
+            <div className="w-4 h-1 bg-black rounded-full"></div>
+          </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6">
-        <h1 className="text-5xl font-serif">Homepage</h1>
+        {/* Main Content */}
+        <div 
+          className={`flex-1 flex flex-col items-center justify-center gap-6 px-6 ${
+            inputValue.length > 0 
+              ? 'opacity-0 pointer-events-none invisible' 
+              : 'opacity-100 visible'
+          }`}
+        >
+          <h1 className="text-5xl font-serif">Cover.io</h1>
 
-        <div className="w-full flex flex-col gap-4 mt-8">
-          <button className="flex items-center gap-2 bg-[#202020] text-[#ffffff] py-3 px-6 rounded-full">
-            <FileText size={20} />
-            <span>Add a PDF</span>
-          </button>
+          <div className="w-full flex flex-col gap-4 mt-4 items-center">
+            {/* Two buttons side by side */}
+            <div className="flex gap-3">
+              <div 
+                className="p-[1.477px] rounded-[76.948px]"
+                style={{
+                  background: 'linear-gradient(15deg, rgba(255,255,255,0.4) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.4) 100%)',
+                }}
+              >
+                <button 
+                  onClick={handleAddDocument}
+                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px]"
+                  style={{
+                    background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
+                    boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
+                    backdropFilter: 'blur(20.39114761352539px)',
+                  }}
+                >
+                  <CustomIcon name="file-text, document" size={20} />
+                  <span>Add a document</span>
+                </button>
+              </div>
 
-          <button className="flex items-center gap-2 bg-[#202020] text-[#ffffff] py-3 px-6 rounded-full">
-            <LucideLink size={20} />
-            <span>LinkedIn URL</span>
-          </button>
-
-          <button className="flex items-center gap-2 bg-[#202020] text-[#ffffff] py-3 px-6 rounded-full">
-            <FileText size={20} />
-            <span>Add a document</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Input Area */}
-      <div className="px-6 mb-6">
-        <div className="bg-[#202020] rounded-3xl p-4 flex items-center">
-          <input
-            type="text"
-            placeholder="Write something about your self"
-            className="bg-transparent border-none outline-none flex-1 text-[#ffffff] placeholder-[#405059]"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <button className="w-10 h-10 bg-[#405059] rounded-full flex items-center justify-center">
-              <Paperclip size={20} className="text-[#ffffff]" />
-            </button>
-            <button className="w-10 h-10 bg-[#405059] rounded-full flex items-center justify-center">
-              <Upload size={20} className="text-[#ffffff]" />
-            </button>
+              <div 
+                className="p-[1.477px] rounded-[76.948px]"
+                style={{
+                  background: 'linear-gradient(15deg, rgba(255,255,255,0.4) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.4) 100%)',
+                }}
+              >
+                <button 
+                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px]"
+                  style={{
+                    background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
+                    boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
+                    backdropFilter: 'blur(20.39114761352539px)',
+                  }}
+                >
+                  <CustomIcon name="link" size={20} />
+                  <span>Portfolio URL</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="px-6 mb-8 flex items-center gap-4">
-        <Link href="/" className="w-16 h-16 bg-[#405059] rounded-full flex items-center justify-center">
-          <Home size={24} className="text-[#ffffff]" />
-        </Link>
-        <Link href="/cover-letter" className="flex-1 bg-[#202020] py-4 px-6 rounded-full flex items-center gap-2">
-          <FileLines size={20} />
-          <span>Cover letter</span>
-        </Link>
-        <Link href="/my-space" className="flex-1 bg-[#202020] py-4 px-6 rounded-full flex items-center gap-2">
-          <Layout size={20} />
-          <span>My Space</span>
-        </Link>
-      </div>
-    </div>
+      <BottomNavigation inputValue={inputValue} setInputValue={setInputValue} />
+    </>
   )
 }
