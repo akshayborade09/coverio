@@ -47,9 +47,19 @@
   margin: 0;
 }
 
-html {
-  height: 100%;
+html,
+body {
+  max-width: 100vw;
   overflow-x: hidden;
+  height: 100vh;
+  height: 100svh; /* Support for small viewport height */
+  width: 100vw;
+  width: 100svw; /* Support for small viewport width */
+  position: fixed;
+  top: 0;
+  left: 0;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
   /* Chrome mobile optimizations */
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -57,24 +67,6 @@ html {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  min-height: 100vh;
-  min-height: 100svh; /* Support for small viewport height */
-  min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
-  width: 100vw;
-  width: 100svw; /* Support for small viewport width */
-  margin: 0;
-  padding: 0;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-  /* Enable natural scrolling for browser UI hiding */
-  position: relative;
 }
 
 @layer utilities {
@@ -94,21 +86,30 @@ body {
   }
 }
 
-/* Additional mobile browser optimizations */
+/* Cover Letter Page Specific Styles for Mobile Browser UI Hiding */
+.cover-letter-page {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
 @media screen and (max-width: 768px) {
-  html {
-    /* Ensure smooth scrolling for mobile */
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
+  .cover-letter-page {
+    /* Enable natural scrolling for mobile browser UI hiding */
+    position: static;
+    min-height: calc(100vh + 200px);
+    min-height: calc(100svh + 200px); 
+    min-height: calc(100dvh + 200px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
-  body {
-    /* Ensure content can scroll to hide browser UI */
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* Force minimum scrollable content for natural browser UI hiding */
+  /* Reset body positioning only for cover letter page */
+  .cover-letter-page ~ body,
+  body:has(.cover-letter-page) {
+    position: static;
+    height: auto;
     min-height: calc(100vh + 200px);
-    min-height: calc(100svh + 200px);
-    min-height: calc(100dvh + 200px);
   }
 }
 
@@ -190,6 +191,10 @@ body {
     font-family: 'Open Sauce One', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     color: #ffffff !important;
     background: #000000 !important;
+    background-image: url('/Images/bg.png') !important;
+    background-size: auto 100vh !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
   }
 }
 

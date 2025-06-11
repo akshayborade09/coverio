@@ -146,6 +146,18 @@ export default function CoverLetterPage() {
   }
 
   useEffect(() => {
+    // Enable natural scrolling for cover letter page only
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
+    if (isMobile) {
+      // Temporarily enable natural scrolling for this page
+      document.body.style.position = 'static'
+      document.body.style.height = 'auto'
+      document.body.style.minHeight = 'calc(100vh + 200px)'
+      document.documentElement.style.position = 'static'
+      document.documentElement.style.height = 'auto'
+    }
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY
 
@@ -171,18 +183,22 @@ export default function CoverLetterPage() {
     window.addEventListener('touchstart', handleTouchStart, { passive: true })
 
     return () => {
+      // Restore original positioning when leaving the page
+      if (isMobile) {
+        document.body.style.position = 'fixed'
+        document.body.style.height = '100vh'
+        document.body.style.minHeight = '100vh'
+        document.documentElement.style.position = 'fixed'
+        document.documentElement.style.height = '100vh'
+      }
+      
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('touchstart', handleTouchStart)
     }
   }, [lastScrollY])
 
   return (
-    <div className="min-h-screen bg-black" style={{
-      backgroundImage: 'url("/Images/bg.png")',
-      backgroundSize: 'auto 100vh',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat'
-    }}>
+    <div className="cover-letter-page">
       {/* Full-Screen Editor */}
       {editingSection && (
         <div className="fixed inset-0 bg-black z-[100] flex flex-col">
