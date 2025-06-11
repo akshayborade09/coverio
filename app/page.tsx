@@ -9,8 +9,18 @@ export default function CoverIoApp() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Prevent scrolling on mount
+  // Reset page state and prevent scrolling
   useEffect(() => {
+    // Reset scroll position to ensure consistent positioning
+    window.scrollTo(0, 0)
+    
+    // Reset any lingering CSS transforms or positioning
+    document.body.style.transform = ''
+    document.body.style.position = ''
+    document.body.style.left = ''
+    document.body.style.right = ''
+    document.body.style.width = ''
+    
     // Disable scrolling on body
     document.body.style.overflow = 'hidden'
     document.documentElement.style.overflow = 'hidden'
@@ -69,9 +79,9 @@ export default function CoverIoApp() {
         className="hidden"
       />
       
-      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden">
+      <div className="fixed inset-0 flex flex-col text-[#ffffff] overflow-hidden">
         {/* Profile Avatar */}
-        <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden">
+        <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden z-10">
           <div className="flex flex-col items-center">
             <div className="w-1 h-1 bg-black rounded-full mb-1"></div>
             <div className="w-4 h-1 bg-black rounded-full"></div>
@@ -79,12 +89,12 @@ export default function CoverIoApp() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32 -mt-6">
+        <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32">
           <h1 className="text-5xl font-serif">Cover.io</h1>
 
-          <div className="w-full flex flex-col gap-4 mt-4 items-center">
+          <div className="w-full max-w-md flex flex-col gap-4 mt-4 items-center">
             {/* Two buttons side by side */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 justify-center w-full">
               <div 
                 className="p-[1.477px] rounded-[76.948px]"
                 style={{
@@ -129,7 +139,7 @@ export default function CoverIoApp() {
             </div>
 
             {/* Third button on new row */}
-            <div className="flex justify-center">
+            <div className="flex justify-center w-full">
               <div 
                 className="p-[1.477px] rounded-[76.948px]"
                 style={{

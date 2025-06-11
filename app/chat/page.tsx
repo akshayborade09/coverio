@@ -67,6 +67,11 @@ function ChatContent() {
         size: file.size,
         type: file.type
       })
+      
+      // Focus on text input after document upload
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 100)
     }
   }
 
@@ -128,7 +133,7 @@ function ChatContent() {
   // Full-screen chat input
   if (isFullScreen) {
     return (
-      <div className="fixed inset-0 z-50 bg-black">
+      <div className="fixed inset-0 z-50">
         <div className="flex flex-col h-full">
           {/* Collapse button */}
           <div className="flex justify-end items-center p-4">
@@ -199,9 +204,9 @@ function ChatContent() {
         className="hidden"
       />
       
-      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden bg-black">
+      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden">
         {/* Header with Back Button */}
-        <div className="flex items-center border-b border-white/10">
+        <div className="flex items-center">
           <button 
             onClick={handleBack}
             className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 m-4"
@@ -367,7 +372,7 @@ function ChatContent() {
 export default function ChatPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen bg-black text-white">
+      <div className="flex items-center justify-center h-screen text-white">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>Loading...</p>

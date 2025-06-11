@@ -20,10 +20,9 @@ export default function CoverLetterPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
   const [isInputFocused, setIsInputFocused] = useState(false)
-  const [draggedBulletIndex, setDraggedBulletIndex] = useState<number | null>(null)
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [dragStartY, setDragStartY] = useState(0)
-  const [dragCurrentY, setDragCurrentY] = useState(0)
+
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [showFeedback, setShowFeedback] = useState(false)
 
   // Section data
   const sections = {
@@ -115,48 +114,40 @@ export default function CoverLetterPage() {
     setIsDragging(false)
   }
 
-  const handleReorderDragStart = (e: React.MouseEvent | React.TouchEvent, index: number) => {
-    e.preventDefault()
-    setDraggedBulletIndex(index)
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    setDragStartY(clientY)
-    setDragCurrentY(clientY)
+  const showFeedbackMessage = (message: string) => {
+    setFeedbackMessage(message)
+    setShowFeedback(true)
+    setTimeout(() => setShowFeedback(false), 2000)
   }
 
-  const handleReorderDragMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (draggedBulletIndex === null) return
-    
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    setDragCurrentY(clientY)
+  const handleSummarise = () => {
+    showFeedbackMessage('Generating cover letter summary...')
+    // Add actual summarise logic here
+    console.log('Summarise action triggered')
   }
 
-  const handleReorderDragEnd = () => {
-    if (draggedBulletIndex !== null && dragOverIndex !== null && draggedBulletIndex !== dragOverIndex) {
-      const newBullets = [...editContent.bullets]
-      const draggedItem = newBullets[draggedBulletIndex]
-      newBullets.splice(draggedBulletIndex, 1)
-      newBullets.splice(dragOverIndex, 0, draggedItem)
-      setEditContent(prev => ({ ...prev, bullets: newBullets }))
-    }
-    
-    setDraggedBulletIndex(null)
-    setDragOverIndex(null)
-    setDragStartY(0)
-    setDragCurrentY(0)
+  const handlePlay = () => {
+    showFeedbackMessage('Playing cover letter audio...')
+    // Add actual play logic here
+    console.log('Play action triggered')
   }
+
+  const handleShare = () => {
+    showFeedbackMessage('Opening share options...')
+    // Add actual share logic here
+    console.log('Share action triggered')
+  }
+
+  const handleSectionEdit = (sectionKey: string, sectionTitle: string) => {
+    showFeedbackMessage(`Editing ${sectionTitle} section...`)
+    handleEditSection(sectionKey)
+  }
+
+
 
   useEffect(() => {
     // Enable natural scrolling for cover letter page only
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    
-    if (isMobile) {
-      // Temporarily enable natural scrolling for this page
-      document.body.style.position = 'static'
-      document.body.style.height = 'auto'
-      document.body.style.minHeight = 'calc(100vh + 200px)'
-      document.documentElement.style.position = 'static'
-      document.documentElement.style.height = 'auto'
-    }
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY
@@ -171,41 +162,28 @@ export default function CoverLetterPage() {
     }
 
     const handleTouchStart = () => {
-      // Trigger browser UI hiding on touch start
-      if (window.scrollY > 10) {
-        // Small scroll to encourage Chrome UI hiding
-        window.scrollBy(0, 1)
-        setTimeout(() => window.scrollBy(0, -1), 10)
+      // Gentle browser UI hiding - only once per session
+      if (isMobile && window.scrollY === 0 && !isUserScrolling) {
+        window.scrollTo(0, 1)
       }
     }
 
     const triggerBrowserUIHide = () => {
-      // Simple browser UI hiding technique
+      // Single gentle scroll on page load only
       if (isMobile && window.scrollY === 0) {
-        // Small scroll to encourage Chrome UI hiding
         window.scrollTo(0, 1)
-        setTimeout(() => window.scrollTo(0, 0), 50)
       }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('touchstart', handleTouchStart, { passive: true })
     
-    // Trigger browser UI hiding on page load for mobile
+    // Trigger browser UI hiding only once on page load
     if (isMobile) {
-      setTimeout(triggerBrowserUIHide, 1000)
+      setTimeout(triggerBrowserUIHide, 500)
     }
 
     return () => {
-      // Restore original positioning when leaving the page
-      if (isMobile) {
-        document.body.style.position = 'fixed'
-        document.body.style.height = '100vh'
-        document.body.style.minHeight = '100vh'
-        document.documentElement.style.position = 'fixed'
-        document.documentElement.style.height = '100vh'
-      }
-      
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('touchstart', handleTouchStart)
     }
@@ -280,35 +258,17 @@ export default function CoverLetterPage() {
               {editContent.bullets.map((bullet, index) => (
                 <div 
                   key={index} 
-                  className={`relative transition-all duration-300 ${
-                    draggedBulletIndex === index ? 'opacity-50 scale-105' : ''
-                  } ${
-                    dragOverIndex === index ? 'border-t-2 border-blue-400' : ''
-                  }`}
-                  onMouseMove={draggedBulletIndex !== null ? handleReorderDragMove : undefined}
-                  onTouchMove={draggedBulletIndex !== null ? handleReorderDragMove : undefined}
-                  onMouseUp={handleReorderDragEnd}
-                  onTouchEnd={handleReorderDragEnd}
-                  onMouseEnter={() => {
-                    if (draggedBulletIndex !== null && draggedBulletIndex !== index) {
-                      setDragOverIndex(index)
-                    }
-                  }}
-                  style={{
-                    transform: draggedBulletIndex === index 
-                      ? `translateY(${dragCurrentY - dragStartY}px)` 
-                      : 'translateY(0px)'
-                  }}
+                  className="relative"
                 >
                   {/* Main Bullet Content */}
                   <div 
-                    className="flex items-start gap-3 transition-transform duration-300 ease-out"
+                    className="flex items-start"
                     style={{
                       transform: draggedBullet === index ? `translateX(${dragOffset}px)` : 'translateX(0px)',
                       backgroundColor: draggedBullet === index ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
                       borderRadius: draggedBullet === index ? '16px' : '0px',
                       padding: '12px 8px 8px 0px',
-                      transition: 'transform 0.3s ease-out, background-color 0.3s ease-out, border-radius 0.3s ease-out'
+                      transition: isDragging ? 'none' : 'transform 0.2s ease-out, background-color 0.2s ease-out, border-radius 0.2s ease-out'
                     }}
                     onTouchStart={(e) => handleDragStart(e, index)}
                     onMouseDown={(e) => handleDragStart(e, index)}
@@ -318,14 +278,7 @@ export default function CoverLetterPage() {
                     onMouseUp={handleDragEnd}
                     onMouseLeave={handleDragEnd}
                   >
-                    {/* Drag Handle Bar */}
-                    <div 
-                      className="flex flex-col justify-center items-center cursor-grab active:cursor-grabbing py-2"
-                      onMouseDown={(e) => handleReorderDragStart(e, index)}
-                      onTouchStart={(e) => handleReorderDragStart(e, index)}
-                    >
-                      <CustomIcon name="bars-two" size={16} className="text-white opacity-30" />
-                    </div>
+
 
                     <textarea
                       value={bullet}
@@ -356,11 +309,10 @@ export default function CoverLetterPage() {
                         height: 'auto',
                         minHeight: 'auto'
                       }}
-                      ref={(el) => {
-                        if (el) {
-                          el.style.height = 'auto';
-                          el.style.height = el.scrollHeight + 'px';
-                        }
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = target.scrollHeight + 'px';
                       }}
                     />
                   </div>
@@ -412,16 +364,23 @@ export default function CoverLetterPage() {
           <div className="p-4">
             <button 
               onClick={() => {
+                showFeedbackMessage('Changes saved successfully!')
                 // Save logic here
                 handleCloseEditor()
               }}
-              className="w-full py-3 px-4 text-white font-medium"
+              className="w-full py-3 px-4 text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95"
               style={{
                 background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                 boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
                 borderRadius: '44.45px',
                 outline: '1px rgba(255, 255, 255, 0.10) solid',
                 outlineOffset: '-1px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
               }}
             >
               Save Changes
@@ -448,7 +407,8 @@ export default function CoverLetterPage() {
           <div className="flex justify-end items-center p-4 relative z-10 h-full">
             <div className="flex gap-3">
               <button 
-                className="flex items-center gap-2 px-4 py-2"
+                className="flex items-center gap-2 px-4 py-2 transition-all duration-200 hover:scale-105 active:scale-95"
+                onClick={handleSummarise}
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -456,13 +416,20 @@ export default function CoverLetterPage() {
                   outline: '1px rgba(255, 255, 255, 0.10) solid',
                   outlineOffset: '-1px',
                   backdropFilter: 'blur(10.67px)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.35) 0%, rgba(113.69, 113.69, 113.69, 0.25) 40%)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)'
                 }}
               >
                 <CustomIcon name="summarise" size={20} />
                 <span>Summarise</span>
               </button>
               <button 
-                className="w-12 h-12 flex items-center justify-center"
+                className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
+                onClick={handlePlay}
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -471,11 +438,18 @@ export default function CoverLetterPage() {
                   outlineOffset: '-1px',
                   backdropFilter: 'blur(10.67px)',
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.35) 0%, rgba(113.69, 113.69, 113.69, 0.25) 40%)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)'
+                }}
               >
                 <CustomIcon name="play" size={20} className="text-[#ffffff]" />
               </button>
               <button 
-                className="w-12 h-12 flex items-center justify-center"
+                className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
+                onClick={handleShare}
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -483,6 +457,12 @@ export default function CoverLetterPage() {
                   outline: '1px rgba(255, 255, 255, 0.10) solid',
                   outlineOffset: '-1px',
                   backdropFilter: 'blur(10.67px)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.35) 0%, rgba(113.69, 113.69, 113.69, 0.25) 40%)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)'
                 }}
               >
                 <CustomIcon name="share" size={20} className="text-[#ffffff]" />
@@ -497,7 +477,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Proven Impact</h2>
-              <button className="text-[#ffffff] opacity-70" onClick={() => handleEditSection('proven-impact')}>
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('proven-impact', 'Proven Impact')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -525,7 +508,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Core Strengths</h2>
-              <button className="text-[#ffffff] opacity-70" onClick={() => handleEditSection('core-strengths')}>
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('core-strengths', 'Core Strengths')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -549,7 +535,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Technical Skills</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('technical-skills', 'Technical Skills')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -573,7 +562,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Professional Experience</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('professional-experience', 'Professional Experience')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -597,7 +589,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Leadership & Collaboration</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('leadership-collaboration', 'Leadership & Collaboration')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -621,7 +616,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Education & Certifications</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('education-certifications', 'Education & Certifications')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -645,7 +643,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Notable Projects</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('notable-projects', 'Notable Projects')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -669,7 +670,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Industry Recognition</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('industry-recognition', 'Industry Recognition')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -693,7 +697,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Cross-functional Expertise</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('cross-functional-expertise', 'Cross-functional Expertise')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -717,7 +724,10 @@ export default function CoverLetterPage() {
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Innovation & Strategy</h2>
-              <button className="text-[#ffffff] opacity-70">
+              <button 
+                className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
+                onClick={() => handleSectionEdit('innovation-strategy', 'Innovation & Strategy')}
+              >
                 <CustomIcon name="pencil" size={20} />
               </button>
             </div>
@@ -737,6 +747,22 @@ export default function CoverLetterPage() {
             </ul>
           </div>
         </div>
+
+        {/* Feedback Message */}
+        {showFeedback && (
+          <div className="fixed bottom-20 left-4 right-4 z-40 flex justify-center">
+            <div 
+              className="px-6 py-3 rounded-full text-white text-sm font-medium transform transition-all duration-300"
+              style={{
+                background: 'linear-gradient(137deg, rgba(34, 197, 94, 0.9) 0%, rgba(16, 185, 129, 0.9) 100%)',
+                boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              {feedbackMessage}
+            </div>
+          </div>
+        )}
 
         {/* Bottom Navigation */}
         {!isInputFocused && <BottomNavigation />}
