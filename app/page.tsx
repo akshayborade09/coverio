@@ -1,12 +1,25 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import CustomIcon from "@/components/CustomIcon"
 import BottomNavigation from "@/components/BottomNavigation"
 
 export default function CoverIoApp() {
   const [inputValue, setInputValue] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Prevent scrolling on mount
+  useEffect(() => {
+    // Disable scrolling on body
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'auto'
+      document.documentElement.style.overflow = 'auto'
+    }
+  }, [])
 
   const handleAddDocument = () => {
     fileInputRef.current?.click()
@@ -31,7 +44,7 @@ export default function CoverIoApp() {
         className="hidden"
       />
       
-      <div className="flex flex-col min-h-screen text-[#ffffff] relative pb-32">
+      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden" style={{ touchAction: 'none' }}>
         {/* Profile Avatar */}
         <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden">
           <div className="flex flex-col items-center">
@@ -42,7 +55,7 @@ export default function CoverIoApp() {
 
         {/* Main Content */}
         <div 
-          className={`flex-1 flex flex-col items-center justify-center gap-6 px-6 ${
+          className={`flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32 -mt-6 ${
             inputValue.length > 0 
               ? 'opacity-0 pointer-events-none invisible' 
               : 'opacity-100 visible'
@@ -69,7 +82,7 @@ export default function CoverIoApp() {
                   }}
                 >
                   <CustomIcon name="file-text, document" size={20} />
-                  <span>Add a document</span>
+                  <span style={{ fontSize: '14px' }}>Add a document</span>
                 </button>
               </div>
 
@@ -88,7 +101,7 @@ export default function CoverIoApp() {
                   }}
                 >
                   <CustomIcon name="link" size={20} />
-                  <span>Portfolio URL</span>
+                  <span style={{ fontSize: '14px' }}>Portfolio URL</span>
                 </button>
               </div>
             </div>

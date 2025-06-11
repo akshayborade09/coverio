@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
 
@@ -17,6 +17,11 @@ export default function CoverLetterPage() {
   const [dragOffset, setDragOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
+  const [isInputFocused, setIsInputFocused] = useState(false)
+  const [draggedBulletIndex, setDraggedBulletIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [dragStartY, setDragStartY] = useState(0)
+  const [dragCurrentY, setDragCurrentY] = useState(0)
 
   // Section data
   const sections = {
@@ -108,47 +113,55 @@ export default function CoverLetterPage() {
     setIsDragging(false)
   }
 
+  const handleReorderDragStart = (e: React.MouseEvent | React.TouchEvent, index: number) => {
+    e.preventDefault()
+    setDraggedBulletIndex(index)
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    setDragStartY(clientY)
+    setDragCurrentY(clientY)
+  }
+
+  const handleReorderDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (draggedBulletIndex === null) return
+    
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    setDragCurrentY(clientY)
+  }
+
+  const handleReorderDragEnd = () => {
+    if (draggedBulletIndex !== null && dragOverIndex !== null && draggedBulletIndex !== dragOverIndex) {
+      const newBullets = [...editContent.bullets]
+      const draggedItem = newBullets[draggedBulletIndex]
+      newBullets.splice(draggedBulletIndex, 1)
+      newBullets.splice(dragOverIndex, 0, draggedItem)
+      setEditContent(prev => ({ ...prev, bullets: newBullets }))
+    }
+    
+    setDraggedBulletIndex(null)
+    setDragOverIndex(null)
+    setDragStartY(0)
+    setDragCurrentY(0)
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      setIsScrolling(true)
 
-      // Clear existing timeout
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout)
-      }
-
-      // Hide nav when scrolling up
-      if (currentScrollY < lastScrollY && currentScrollY > 50) {
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
         setIsNavVisible(false)
-      }
-      // Show nav when scrolling down
-      else if (currentScrollY > lastScrollY) {
+      } else if (currentScrollY < lastScrollY) {
         setIsNavVisible(true)
       }
 
       setLastScrollY(currentScrollY)
-
-      // Show nav when user stops scrolling (only if currently hidden)
-      const newTimeout = setTimeout(() => {
-        setIsScrolling(false)
-        if (!isNavVisible) {
-          setIsNavVisible(true)
-        }
-      }, 150)
-      
-      setScrollTimeout(newTimeout)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout)
-      }
     }
-  }, [lastScrollY, scrollTimeout])
+  }, [lastScrollY])
 
   return (
     <>
@@ -220,7 +233,28 @@ export default function CoverLetterPage() {
             {/* Bullets Editor */}
             <div className="space-y-4">
               {editContent.bullets.map((bullet, index) => (
-                <div key={index} className="relative">
+                <div 
+                  key={index} 
+                  className={`relative transition-all duration-300 ${
+                    draggedBulletIndex === index ? 'opacity-50 scale-105' : ''
+                  } ${
+                    dragOverIndex === index ? 'border-t-2 border-blue-400' : ''
+                  }`}
+                  onMouseMove={draggedBulletIndex !== null ? handleReorderDragMove : undefined}
+                  onTouchMove={draggedBulletIndex !== null ? handleReorderDragMove : undefined}
+                  onMouseUp={handleReorderDragEnd}
+                  onTouchEnd={handleReorderDragEnd}
+                  onMouseEnter={() => {
+                    if (draggedBulletIndex !== null && draggedBulletIndex !== index) {
+                      setDragOverIndex(index)
+                    }
+                  }}
+                  style={{
+                    transform: draggedBulletIndex === index 
+                      ? `translateY(${dragCurrentY - dragStartY}px)` 
+                      : 'translateY(0px)'
+                  }}
+                >
                   {/* Main Bullet Content */}
                   <div 
                     className="flex items-start gap-3 transition-transform duration-300 ease-out"
@@ -239,6 +273,15 @@ export default function CoverLetterPage() {
                     onMouseUp={handleDragEnd}
                     onMouseLeave={handleDragEnd}
                   >
+                    {/* Drag Handle Bar */}
+                    <div 
+                      className="flex flex-col justify-center items-center cursor-grab active:cursor-grabbing py-2"
+                      onMouseDown={(e) => handleReorderDragStart(e, index)}
+                      onTouchStart={(e) => handleReorderDragStart(e, index)}
+                    >
+                      <CustomIcon name="bars-two" size={16} className="text-white opacity-30" />
+                    </div>
+
                     <textarea
                       value={bullet}
                       onChange={(e) => {
@@ -255,7 +298,11 @@ export default function CoverLetterPage() {
                         
                         setEditContent(prev => ({ ...prev, bullets: newBullets }))
                       }}
-                      onFocus={resetDrag}
+                      onFocus={() => {
+                        resetDrag()
+                        setIsInputFocused(true)
+                      }}
+                      onBlur={() => setIsInputFocused(false)}
                       className="flex-1 bg-transparent text-white text-lg font-sans border-none outline-none opacity-80 placeholder-gray-500"
                       placeholder="Bullet point..."
                       style={{
@@ -342,7 +389,7 @@ export default function CoverLetterPage() {
         </div>
       )}
 
-      <div className="flex flex-col min-h-screen text-[#ffffff] relative pb-24">
+      <div className="text-[#ffffff] relative pb-24">
         {/* Action Buttons - Fixed Top */}
         <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
           isNavVisible ? 'translate-y-0' : '-translate-y-full'
@@ -363,8 +410,10 @@ export default function CoverLetterPage() {
             }}
           />
           
-          {/* Content Layer */}
-          <div className="relative flex items-end justify-end gap-3 px-6 py-4">
+          {/* Top section */}
+          <div className={`relative flex items-end justify-end gap-3 px-6 py-4 transition-transform duration-300 ease-in-out ${
+            isNavVisible && !isDragging ? 'translate-y-0' : '-translate-y-full'
+          }`}>
             <button 
               className="flex items-center gap-2 text-[#ffffff] py-3 px-4"
               style={{
@@ -409,7 +458,7 @@ export default function CoverLetterPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 px-6 pt-20 space-y-6 overflow-y-auto">
+        <div className="px-4 pt-20 space-y-6">
           {/* Proven Impact Section */}
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
@@ -657,7 +706,7 @@ export default function CoverLetterPage() {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation />
+      {!isInputFocused && <BottomNavigation />}
     </>
   )
 }

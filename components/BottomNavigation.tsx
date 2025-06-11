@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import CustomIcon from "@/components/CustomIcon"
@@ -14,6 +14,9 @@ export default function BottomNavigation({ inputValue = "", setInputValue }: Bot
   const pathname = usePathname()
   const [isAtMaxHeight, setIsAtMaxHeight] = useState(false)
   const [isFullScreen, setIsFullScreen] = useState(false)
+  const [previousHeight, setPreviousHeight] = useState<string>("24px")
+  const [wasAtMaxHeight, setWasAtMaxHeight] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const navItems = [
     {
@@ -44,11 +47,25 @@ export default function BottomNavigation({ inputValue = "", setInputValue }: Bot
   }
 
   const handleExpandClick = () => {
+    // Save current state before expanding
+    if (textareaRef.current) {
+      setPreviousHeight(textareaRef.current.style.height || "24px")
+    }
+    setWasAtMaxHeight(isAtMaxHeight)
     setIsFullScreen(true)
   }
 
   const handleCollapseClick = () => {
     setIsFullScreen(false)
+    // Restore textarea height after a short delay
+    setTimeout(() => {
+      if (textareaRef.current && previousHeight !== "24px") {
+        textareaRef.current.style.height = previousHeight
+        setIsAtMaxHeight(wasAtMaxHeight)
+        // Scroll to bottom to show the last line of content
+        textareaRef.current.scrollTop = textareaRef.current.scrollHeight
+      }
+    }, 100)
   }
 
   // Full-screen chat input
@@ -136,8 +153,9 @@ export default function BottomNavigation({ inputValue = "", setInputValue }: Bot
               {/* Text Input Area */}
               <div className="mb-4">
                 <textarea
+                  ref={textareaRef}
                   placeholder="Write something about yourself"
-                  className="bg-transparent border-none outline-none w-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none overflow-hidden"
+                  className="chat-textarea bg-transparent border-none outline-none w-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none overflow-hidden"
                   value={inputValue}
                   onChange={(e) => setInputValue?.(e.target.value)}
                   onInput={(e) => {
@@ -149,7 +167,14 @@ export default function BottomNavigation({ inputValue = "", setInputValue }: Bot
                     target.style.height = newHeight + 'px';
                     
                     // Check if we're at max height
-                    setIsAtMaxHeight(scrollHeight > maxHeight);
+                    const atMaxHeight = scrollHeight > maxHeight;
+                    setIsAtMaxHeight(atMaxHeight);
+                    
+                    // Update previous height for state restoration
+                    if (!isFullScreen) {
+                      setPreviousHeight(newHeight + 'px');
+                      setWasAtMaxHeight(atMaxHeight);
+                    }
                   }}
                   style={{
                     minHeight: '24px',
@@ -206,13 +231,13 @@ export default function BottomNavigation({ inputValue = "", setInputValue }: Bot
 
         {/* Navigation */}
         <div 
-          className="p-[1px] rounded-[991.36px] inline-flex"
+          className="p-[1px] rounded-[991.36px] inline-flex w-full"
           style={{
             background: 'linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 60%)',
           }}
         >
           <div 
-            className="w-96 p-2 bg-gradient-to-br from-white/10 via-gray-200/10 to-stone-300/10 rounded-[991.36px] shadow-[0px_1.982710838317871px_47.585060119628906px_-1.982710838317871px_rgba(0,0,0,0.18)] backdrop-blur-xl inline-flex justify-start items-center gap-1.5 overflow-hidden"
+            className="w-full p-2 bg-gradient-to-br from-white/10 via-gray-200/10 to-stone-300/10 rounded-[991.36px] shadow-[0px_1.982710838317871px_47.585060119628906px_-1.982710838317871px_rgba(0,0,0,0.18)] backdrop-blur-xl inline-flex justify-start items-center gap-1.5 overflow-hidden"
           >
             {navItems.map((item) => {
               const active = isActive(item.href)
@@ -264,7 +289,7 @@ export default function BottomNavigation({ inputValue = "", setInputValue }: Bot
                     <div 
                       className="text-center flex justify-center flex-col text-white"
                       style={{
-                        fontSize: '16.43px',
+                        fontSize: '14.43px',
                         fontWeight: '510',
                         lineHeight: '22.02px',
                       }}
