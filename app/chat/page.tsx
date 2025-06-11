@@ -196,7 +196,7 @@ function ChatContent() {
               backdropFilter: 'blur(10.67px)',
             }}
           >
-            <CustomIcon name="arrow-left" size={20} className="text-white" />
+            <CustomIcon name="back" size={20} className="text-white" />
           </button>
           <h1 className="text-xl font-sans">
             {fromSource === 'write' ? 'Write About You' : 'Add Document'}
