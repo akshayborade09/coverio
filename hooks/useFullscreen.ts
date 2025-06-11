@@ -17,33 +17,21 @@ export function useFullscreen() {
     }
 
     const hideChromeUI = () => {
-      if (isMobile() && isChrome()) {
-        // Method 1: Trigger minimal-ui behavior through viewport manipulation
-        const viewport = document.querySelector('meta[name=viewport]')
-        if (viewport) {
-          const currentContent = viewport.getAttribute('content') || ''
-          if (!currentContent.includes('minimal-ui')) {
-            viewport.setAttribute('content', currentContent + ', minimal-ui')
-          }
+      if (isMobile()) {
+        // Method 1: Scroll momentum to trigger Chrome's auto-hide behavior
+        if (window.scrollY > 10) {
+          // Small scroll adjustments to trigger browser UI hiding
+          window.scrollBy(0, 2)
+          setTimeout(() => window.scrollBy(0, -1), 50)
         }
 
-        // Method 2: Use scroll momentum to force UI hiding
-        if (window.scrollY > 0) {
-          // Small scroll to trigger Chrome's auto-hide behavior
-          window.scrollBy(0, 1)
-          setTimeout(() => window.scrollBy(0, -1), 0)
-        }
-
-        // Method 3: Force minimum height to be larger than viewport
-        document.body.style.minHeight = `${window.innerHeight + 1}px`
+        // Method 2: Ensure content is scrollable
+        const body = document.body
+        const currentHeight = body.offsetHeight
+        const viewportHeight = window.innerHeight
         
-        // Method 4: Request fullscreen for supported browsers
-        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-          try {
-            document.documentElement.requestFullscreen()
-          } catch (e) {
-            // Silently fail if fullscreen is not supported
-          }
+        if (currentHeight <= viewportHeight) {
+          body.style.minHeight = `${viewportHeight + 200}px`
         }
       }
     }

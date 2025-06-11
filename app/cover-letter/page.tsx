@@ -177,7 +177,12 @@ export default function CoverLetterPage() {
   }, [lastScrollY])
 
   return (
-    <>
+    <div className="min-h-screen bg-black" style={{
+      backgroundImage: 'url("/Images/bg.png")',
+      backgroundSize: 'auto 100vh',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }}>
       {/* Full-Screen Editor */}
       {editingSection && (
         <div className="fixed inset-0 bg-black z-[100] flex flex-col">
@@ -395,76 +400,58 @@ export default function CoverLetterPage() {
         </div>
       )}
 
-      <div className="text-[#ffffff] relative pb-24 h-full overflow-y-auto overscroll-none">
-        {/* Action Buttons - Fixed Top */}
-        <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
-          isNavVisible ? 'translate-y-0' : '-translate-y-full'
-        }`}>
-          {/* Progressive Blur Layers */}
-          <div className="absolute inset-0" 
-            style={{
-              backdropFilter: 'blur(12px)',
-              maskImage: 'linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0) 90%, rgba(0, 0, 0, 0) 100%)',
-              WebkitMaskImage: 'linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0) 90%, rgba(0, 0, 0, 0) 100%)',
-            }}
-          />
-          
-          {/* Background Gradient */}
-          <div className="absolute inset-0"
-            style={{
-              background: 'linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0) 100%)',
-            }}
-          />
-          
-          {/* Top section */}
-          <div className={`relative flex items-end justify-end gap-3 px-4 py-4 transition-transform duration-300 ease-in-out ${
-            isNavVisible && !isDragging ? 'translate-y-0' : '-translate-y-full'
-          }`}>
-            <button 
-              className="flex items-center gap-2 text-[#ffffff] py-3 px-4"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                outline: '1px rgba(255, 255, 255, 0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-            >
-              <CustomIcon name="summarise" size={20} />
-              <span>Summarise</span>
-            </button>
-            <button 
-              className="w-12 h-12 flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                outline: '1px rgba(255, 255, 255, 0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-            >
-              <CustomIcon name="play" size={20} className="text-[#ffffff]" />
-            </button>
-            <button 
-              className="w-12 h-12 flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                outline: '1px rgba(255, 255, 255, 0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-            >
-              <CustomIcon name="share" size={20} className="text-[#ffffff]" />
-            </button>
+      <div className="text-[#ffffff] relative">
+        {/* Header */}
+        <div className="sticky top-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm">
+          <div className="flex justify-between items-center p-4">
+            <h1 className="text-white text-2xl font-serif opacity-80">Akshay's Cover Letter</h1>
+            <div className="flex gap-3">
+              <button 
+                className="flex items-center gap-2 px-4 py-2"
+                style={{
+                  background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                  boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                  borderRadius: '44.45px',
+                  outline: '1px rgba(255, 255, 255, 0.10) solid',
+                  outlineOffset: '-1px',
+                  backdropFilter: 'blur(10.67px)',
+                }}
+              >
+                <CustomIcon name="summarise" size={20} />
+                <span>Summarise</span>
+              </button>
+              <button 
+                className="w-12 h-12 flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                  boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                  borderRadius: '44.45px',
+                  outline: '1px rgba(255, 255, 255, 0.10) solid',
+                  outlineOffset: '-1px',
+                  backdropFilter: 'blur(10.67px)',
+                }}
+              >
+                <CustomIcon name="play" size={20} className="text-[#ffffff]" />
+              </button>
+              <button 
+                className="w-12 h-12 flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                  boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                  borderRadius: '44.45px',
+                  outline: '1px rgba(255, 255, 255, 0.10) solid',
+                  outlineOffset: '-1px',
+                  backdropFilter: 'blur(10.67px)',
+                }}
+              >
+                <CustomIcon name="share" size={20} className="text-[#ffffff]" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="px-4 pt-20 pb-32 space-y-6">
+        <div className="px-4 pb-32 space-y-6">
           {/* Proven Impact Section */}
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">
@@ -709,10 +696,10 @@ export default function CoverLetterPage() {
             </ul>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Navigation */}
-      {!isInputFocused && <BottomNavigation />}
-    </>
+        {/* Bottom Navigation */}
+        {!isInputFocused && <BottomNavigation />}
+      </div>
+    </div>
   )
 }
