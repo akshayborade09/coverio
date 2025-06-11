@@ -135,7 +135,7 @@ export default function CoverIoApp() {
                     backdropFilter: 'blur(20.39114761352539px)',
                   }}
                 >
-                  <CustomIcon name="edit" size={20} />
+                  <CustomIcon name="write" size={20} />
                   <span style={{ fontSize: '14px' }}>Write about you</span>
                 </button>
               </div>
