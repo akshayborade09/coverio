@@ -143,59 +143,100 @@ export default function CoverLetterPage() {
     handleEditSection(sectionKey)
   }
 
+  const handleSectionEditClick = (e: React.MouseEvent, sectionKey: string, sectionTitle: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    handleSectionEdit(sectionKey, sectionTitle)
+  }
+
 
 
   useEffect(() => {
-    // Enable natural scrolling for cover letter page only
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsNavVisible(false)
-      } else if (currentScrollY < lastScrollY) {
-        setIsNavVisible(true)
-      }
-
-      setLastScrollY(currentScrollY)
-    }
-
-    const handleTouchStart = () => {
-      // Gentle browser UI hiding - only once per session
-      if (isMobile && window.scrollY === 0 && !isUserScrolling) {
-        window.scrollTo(0, 1)
-      }
-    }
-
-    const triggerBrowserUIHide = () => {
-      // Single gentle scroll on page load only
-      if (isMobile && window.scrollY === 0) {
-        window.scrollTo(0, 1)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    let ticking = false
     
-    // Trigger browser UI hiding only once on page load
-    if (isMobile) {
-      setTimeout(triggerBrowserUIHide, 500)
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY
+
+          if (currentScrollY > lastScrollY && currentScrollY > 50) {
+            setIsNavVisible(false)
+          } else if (currentScrollY < lastScrollY) {
+            setIsNavVisible(true)
+          }
+
+          setLastScrollY(currentScrollY)
+          ticking = false
+        })
+        ticking = true
+      }
     }
+
+    // Only add scroll listener, remove all touch manipulation
+    window.addEventListener('scroll', handleScroll, { passive: true })
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('touchstart', handleTouchStart)
     }
-  }, [lastScrollY])
+  }, []) // Remove lastScrollY from dependencies to prevent re-initialization
 
-  return (
-    <div className="cover-letter-page">
-      {/* Full-Screen Editor */}
+      return (
+    <div 
+      className="cover-letter-page"
+      onClick={(e) => {
+        // Prevent any click events from triggering scroll behavior
+        e.stopPropagation()
+      }}
+      onTouchStart={(e) => {
+        // Prevent touch events from triggering scroll adjustments
+        e.stopPropagation()
+      }}
+      onTouchMove={(e) => {
+        // Allow natural scroll but prevent event bubbling
+        e.stopPropagation()
+      }}
+      onTouchEnd={(e) => {
+        // Prevent touch end from triggering scroll adjustments
+        e.stopPropagation()
+      }}
+      style={{
+        // Disable touch-action to prevent browser scroll optimizations
+        touchAction: 'pan-y',
+        // Prevent text selection that might trigger scroll
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        // Disable tap highlight
+        WebkitTapHighlightColor: 'transparent'
+      }}
+    >
+      {/* Bottom Sheet Editor */}
       {editingSection && (
-        <div className="fixed inset-0 bg-black z-[100] flex flex-col">
-          {/* Header with Editable Title and Close Button */}
-          <div className="flex items-center justify-between gap-4 p-4">
+        <>
+          {/* Background Overlay */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-60 z-[90]"
+            style={{ 
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)'
+            }}
+            onClick={handleCloseEditor}
+          />
+          
+                    {/* Bottom Sheet */}
+          <div 
+            className="fixed bottom-0 left-0 right-0 bg-black z-[100] flex flex-col rounded-t-3xl shadow-2xl"
+            style={{ 
+              height: '85vh',
+              maxHeight: '85vh'
+            }}
+          >
+            {/* Drag Handle */}
+            <div className="flex justify-center py-3">
+              <div className="w-10 h-1 bg-white bg-opacity-30 rounded-full" />
+            </div>
+            
+            {/* Header with Editable Title and Close Button */}
+            <div className="flex items-center justify-between gap-4 px-4 pb-4">
             <input 
               type="text"
               value={editContent.title}
@@ -270,12 +311,30 @@ export default function CoverLetterPage() {
                       padding: '12px 8px 8px 0px',
                       transition: isDragging ? 'none' : 'transform 0.2s ease-out, background-color 0.2s ease-out, border-radius 0.2s ease-out'
                     }}
-                    onTouchStart={(e) => handleDragStart(e, index)}
-                    onMouseDown={(e) => handleDragStart(e, index)}
-                    onTouchMove={handleDragMove}
-                    onMouseMove={isDragging ? handleDragMove : undefined}
-                    onTouchEnd={handleDragEnd}
-                    onMouseUp={handleDragEnd}
+                    onTouchStart={(e) => {
+                      e.stopPropagation()
+                      handleDragStart(e, index)
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                      handleDragStart(e, index)
+                    }}
+                    onTouchMove={(e) => {
+                      e.stopPropagation()
+                      handleDragMove(e)
+                    }}
+                    onMouseMove={isDragging ? (e) => {
+                      e.stopPropagation()
+                      handleDragMove(e)
+                    } : undefined}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation()
+                      handleDragEnd()
+                    }}
+                    onMouseUp={(e) => {
+                      e.stopPropagation()
+                      handleDragEnd()
+                    }}
                     onMouseLeave={handleDragEnd}
                   >
 
@@ -296,7 +355,8 @@ export default function CoverLetterPage() {
                         
                         setEditContent(prev => ({ ...prev, bullets: newBullets }))
                       }}
-                      onFocus={() => {
+                      onFocus={(e) => {
+                        e.target.scrollIntoView = () => {} // Disable auto-scroll on focus
                         resetDrag()
                         setIsInputFocused(true)
                       }}
@@ -386,7 +446,8 @@ export default function CoverLetterPage() {
               Save Changes
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       <div className="text-[#ffffff] relative">
@@ -479,7 +540,11 @@ export default function CoverLetterPage() {
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Proven Impact</h2>
               <button 
                 className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
-                onClick={() => handleSectionEdit('proven-impact', 'Proven Impact')}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  handleSectionEdit('proven-impact', 'Proven Impact')
+                }}
               >
                 <CustomIcon name="pencil" size={20} />
               </button>
@@ -510,7 +575,7 @@ export default function CoverLetterPage() {
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Core Strengths</h2>
               <button 
                 className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
-                onClick={() => handleSectionEdit('core-strengths', 'Core Strengths')}
+                onClick={(e) => handleSectionEditClick(e, 'core-strengths', 'Core Strengths')}
               >
                 <CustomIcon name="pencil" size={20} />
               </button>
@@ -537,7 +602,7 @@ export default function CoverLetterPage() {
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Technical Skills</h2>
               <button 
                 className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
-                onClick={() => handleSectionEdit('technical-skills', 'Technical Skills')}
+                onClick={(e) => handleSectionEditClick(e, 'technical-skills', 'Technical Skills')}
               >
                 <CustomIcon name="pencil" size={20} />
               </button>
@@ -564,7 +629,7 @@ export default function CoverLetterPage() {
               <h2 className="opacity-40 text-white text-base font-serif font-normal leading-6 break-words">Professional Experience</h2>
               <button 
                 className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10" 
-                onClick={() => handleSectionEdit('professional-experience', 'Professional Experience')}
+                onClick={(e) => handleSectionEditClick(e, 'professional-experience', 'Professional Experience')}
               >
                 <CustomIcon name="pencil" size={20} />
               </button>

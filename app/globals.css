@@ -63,28 +63,35 @@ body {
 
 
 
-/* Cover Letter Page Specific Styles for Mobile Browser UI Hiding */
+/* Cover Letter Page Specific Styles - Disable all touch scroll optimizations */
 .cover-letter-page {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
+  /* Disable all touch scroll optimizations that cause gradual scrolling */
+  scroll-behavior: auto !important;
+  -webkit-overflow-scrolling: auto !important;
+  /* Prevent momentum scrolling */
+  overscroll-behavior: contain;
+  /* Control touch actions strictly */
+  touch-action: pan-y;
 }
 
-/* Smooth scrolling optimization for the main content area */
+/* Disable smooth scrolling to prevent touch-triggered gradual scrolling */
 .cover-letter-page .main-content {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: auto;
 }
 
 @media screen and (max-width: 768px) {
   .cover-letter-page {
-    /* Enable natural scrolling for mobile browser UI hiding */
+    /* Disable touch scrolling optimizations to prevent gradual scrolling */
     position: static;
     min-height: calc(100vh + 200px);
     min-height: calc(100svh + 200px); 
     min-height: calc(100dvh + 200px);
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    -webkit-overflow-scrolling: auto;
   }
   
   /* Reset body positioning only for cover letter page */
