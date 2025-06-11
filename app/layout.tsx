@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Cover.io',
   description: 'AI-powered cover letter generator',
   generator: 'v0.dev',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, minimal-ui',
 }
 
 export default function RootLayout({
@@ -24,6 +24,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#000000" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="HandheldFriendly" content="true" />
       </head>
       <body className="overscroll-none">{children}</body>
     </html>

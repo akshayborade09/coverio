@@ -158,10 +158,21 @@ export default function CoverLetterPage() {
       setLastScrollY(currentScrollY)
     }
 
+    const handleTouchStart = () => {
+      // Trigger browser UI hiding on touch start
+      if (window.scrollY > 10) {
+        // Small scroll to encourage Chrome UI hiding
+        window.scrollBy(0, 1)
+        setTimeout(() => window.scrollBy(0, -1), 10)
+      }
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('touchstart', handleTouchStart)
     }
   }, [lastScrollY])
 
@@ -453,7 +464,7 @@ export default function CoverLetterPage() {
         </div>
 
         {/* Main Content */}
-        <div className="px-4 pt-20 space-y-6">
+        <div className="px-4 pt-20 pb-32 space-y-6">
           {/* Proven Impact Section */}
           <div className="bg-[#202020] rounded-3xl p-4 relative">
             <div className="flex justify-between items-center mb-4">

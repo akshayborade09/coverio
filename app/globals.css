@@ -53,6 +53,7 @@ body {
   overflow-x: hidden;
   height: 100vh;
   height: 100svh; /* Support for small viewport height */
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
   width: 100vw;
   width: 100svw; /* Support for small viewport width */
   position: fixed;
@@ -60,11 +61,57 @@ body {
   left: 0;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  /* Chrome mobile optimizations */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* Chrome Mobile Browser UI Hiding Optimizations */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari and Chrome mobile specific styles */
+  body {
+    /* Force height to be slightly larger than viewport to enable scrolling */
+    min-height: calc(100vh + 1px);
+    min-height: calc(100svh + 1px);
+    min-height: calc(100dvh + 1px);
+  }
+}
+
+/* Additional mobile browser optimizations */
+@media screen and (max-width: 768px) {
+  html {
+    /* Ensure smooth scrolling for mobile */
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    /* Ensure content can scroll to hide browser UI */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* Force minimum scrollable content */
+    min-height: calc(100vh + 50px);
+    min-height: calc(100svh + 50px);
+    min-height: calc(100dvh + 50px);
+  }
+  
+  /* Optimize for Chrome mobile specifically */
+  @supports (-webkit-appearance: none) {
+    body {
+      /* Chrome mobile specific height adjustments */
+      min-height: calc(100vh + 100px);
+      min-height: calc(100svh + 100px);
+      min-height: calc(100dvh + 100px);
+    }
   }
 }
 
