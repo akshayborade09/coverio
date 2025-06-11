@@ -3,12 +3,14 @@
 import { useState, useEffect, useRef } from "react"
 import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
+import { useFullscreen } from "@/hooks/useFullscreen"
 
 export default function CoverLetterPage() {
+  const { isScrolling } = useFullscreen()
   const [isNavVisible, setIsNavVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null)
-  const [isScrolling, setIsScrolling] = useState(false)
+  const [isUserScrolling, setIsUserScrolling] = useState(false)
   const [editingSection, setEditingSection] = useState<string | null>(null)
   const [editContent, setEditContent] = useState({ title: '', bullets: [''] })
   const [showDeleteToast, setShowDeleteToast] = useState(false)
@@ -168,11 +170,18 @@ export default function CoverLetterPage() {
       {/* Full-Screen Editor */}
       {editingSection && (
         <div className="fixed inset-0 bg-black z-[100] flex flex-col">
-          {/* Close Button */}
-          <div className="flex justify-end p-4">
+          {/* Header with Editable Title and Close Button */}
+          <div className="flex items-center justify-between gap-4 p-4">
+            <input 
+              type="text"
+              value={editContent.title}
+              onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
+              className="flex-1 bg-transparent text-white text-2xl font-serif border-none outline-none opacity-80 placeholder-gray-400"
+              placeholder="Section title"
+            />
             <button 
               onClick={handleCloseEditor}
-              className="w-12 h-12 flex items-center justify-center"
+              className="w-10 h-10 flex items-center justify-center flex-shrink-0"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -186,11 +195,11 @@ export default function CoverLetterPage() {
             </button>
           </div>
 
-          {/* Editor Content */}
-          <div className="flex-1 px-4 pb-20 overflow-y-auto overflow-x-hidden">
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col">
             {/* Delete Confirmation Toast */}
             {showDeleteToast && (
-              <div className="fixed bottom-16 left-4 right-4 z-10 mb-4">
+              <div className="fixed bottom-20 left-4 right-4 z-10">
                 <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl"
                   style={{
                     background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
@@ -219,19 +228,9 @@ export default function CoverLetterPage() {
               </div>
             )}
 
-            {/* Title Editor */}
-            <div className="mb-6">
-              <input 
-                type="text"
-                value={editContent.title}
-                onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full bg-transparent text-white text-2xl font-serif border-none outline-none opacity-60 placeholder-gray-500"
-                placeholder="Section title..."
-              />
-            </div>
-
-            {/* Bullets Editor */}
-            <div className="space-y-4">
+            {/* Bullet Points Section */}
+            <div className="flex-1 overflow-y-auto px-4">
+              <div className="space-y-4 py-2">
               {editContent.bullets.map((bullet, index) => (
                 <div 
                   key={index} 
@@ -341,46 +340,42 @@ export default function CoverLetterPage() {
                 </div>
               ))}
               
-              {/* Add Bullet Button */}
-              <button 
-                onClick={() => setEditContent(prev => ({ ...prev, bullets: [...prev.bullets, ''] }))}
-                className="flex items-center gap-2 text-[#ffffff] opacity-70 py-2"
-              >
-                <CustomIcon name="plus" size={16} />
-                <span>Add bullet point</span>
-              </button>
+                {/* Add Bullet Button */}
+                <div className="pt-4">
+                  <button 
+                    onClick={() => setEditContent(prev => ({ ...prev, bullets: [...prev.bullets, ''] }))}
+                    className="flex items-center gap-2 text-[#ffffff] py-3 px-4"
+                    style={{
+                      background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                      boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                      borderRadius: '44.45px',
+                      outline: '1px rgba(255, 255, 255, 0.10) solid',
+                      outlineOffset: '-1px',
+                      backdropFilter: 'blur(10.67px)',
+                    }}
+                  >
+                    <CustomIcon name="plus" size={16} />
+                    <span>Add bullet point</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Bottom Actions */}
-          <div className="flex gap-3 p-4">
-            <button 
-              onClick={handleCloseEditor}
-              className="flex-1 py-3 px-4 text-[#ffffff] opacity-70"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                outline: '1px rgba(255, 255, 255, 0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-            >
-              Discard
-            </button>
+          <div className="p-4">
             <button 
               onClick={() => {
                 // Save logic here
                 handleCloseEditor()
               }}
-              className="flex-1 py-3 px-4 text-[#ffffff]"
+              className="w-full py-3 px-4 text-white font-medium"
               style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
                 borderRadius: '44.45px',
                 outline: '1px rgba(255, 255, 255, 0.10) solid',
                 outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
               }}
             >
               Save Changes
@@ -389,7 +384,7 @@ export default function CoverLetterPage() {
         </div>
       )}
 
-      <div className="text-[#ffffff] relative pb-24">
+      <div className="text-[#ffffff] relative pb-24 h-full overflow-y-auto overscroll-none">
         {/* Action Buttons - Fixed Top */}
         <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
           isNavVisible ? 'translate-y-0' : '-translate-y-full'
@@ -411,7 +406,7 @@ export default function CoverLetterPage() {
           />
           
           {/* Top section */}
-          <div className={`relative flex items-end justify-end gap-3 px-6 py-4 transition-transform duration-300 ease-in-out ${
+          <div className={`relative flex items-end justify-end gap-3 px-4 py-4 transition-transform duration-300 ease-in-out ${
             isNavVisible && !isDragging ? 'translate-y-0' : '-translate-y-full'
           }`}>
             <button 

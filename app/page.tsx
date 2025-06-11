@@ -3,9 +3,11 @@
 import { useState, useRef, useEffect } from "react"
 import CustomIcon from "@/components/CustomIcon"
 import BottomNavigation from "@/components/BottomNavigation"
+import ChatInput from "@/components/ChatInput"
 
 export default function CoverIoApp() {
   const [inputValue, setInputValue] = useState("")
+  const [isChatInputFocused, setIsChatInputFocused] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Prevent scrolling on mount
@@ -56,7 +58,7 @@ export default function CoverIoApp() {
         {/* Main Content */}
         <div 
           className={`flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32 -mt-6 ${
-            inputValue.length > 0 
+            inputValue.length > 0 || isChatInputFocused
               ? 'opacity-0 pointer-events-none invisible' 
               : 'opacity-100 visible'
           }`}
@@ -109,8 +111,15 @@ export default function CoverIoApp() {
         </div>
       </div>
 
+      {/* Chat Input */}
+      <ChatInput 
+        inputValue={inputValue} 
+        setInputValue={setInputValue}
+        onChatInputFocus={setIsChatInputFocused}
+      />
+      
       {/* Bottom Navigation */}
-      <BottomNavigation inputValue={inputValue} setInputValue={setInputValue} />
+      {!isChatInputFocused && <BottomNavigation />}
     </>
   )
 }
