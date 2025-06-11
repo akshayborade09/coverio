@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import CustomIcon from "@/components/CustomIcon"
 import BottomNavigation from "@/components/BottomNavigation"
-import ChatInput from "@/components/ChatInput"
 
 export default function CoverIoApp() {
-  const [inputValue, setInputValue] = useState("")
-  const [isChatInputFocused, setIsChatInputFocused] = useState(false)
+  const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Prevent scrolling on mount
@@ -30,9 +29,26 @@ export default function CoverIoApp() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      console.log("Selected file:", file.name)
-      // Handle file upload logic here
+      // Create file data and navigate to chat with document
+      const fileData = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file: file
+      }
+      // Store file data in localStorage temporarily
+      localStorage.setItem('selectedDocument', JSON.stringify({
+        name: fileData.name,
+        size: fileData.size,
+        type: fileData.type
+      }))
+      // Navigate to chat interface
+      router.push('/chat?from=document')
     }
+  }
+
+  const handleWriteAboutYou = () => {
+    router.push('/chat?from=write')
   }
 
   return (
@@ -56,13 +72,7 @@ export default function CoverIoApp() {
         </div>
 
         {/* Main Content */}
-        <div 
-          className={`flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32 -mt-6 ${
-            inputValue.length > 0 || isChatInputFocused
-              ? 'opacity-0 pointer-events-none invisible' 
-              : 'opacity-100 visible'
-          }`}
-        >
+        <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32 -mt-6">
           <h1 className="text-5xl font-serif">Cover.io</h1>
 
           <div className="w-full flex flex-col gap-4 mt-4 items-center">
@@ -107,19 +117,35 @@ export default function CoverIoApp() {
                 </button>
               </div>
             </div>
+
+            {/* Third button on new row */}
+            <div className="flex justify-center">
+              <div 
+                className="p-[1.477px] rounded-[76.948px]"
+                style={{
+                  background: 'linear-gradient(15deg, rgba(255,255,255,0.4) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.4) 100%)',
+                }}
+              >
+                <button 
+                  onClick={handleWriteAboutYou}
+                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px]"
+                  style={{
+                    background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
+                    boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
+                    backdropFilter: 'blur(20.39114761352539px)',
+                  }}
+                >
+                  <CustomIcon name="edit" size={20} />
+                  <span style={{ fontSize: '14px' }}>Write about you</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Chat Input */}
-      <ChatInput 
-        inputValue={inputValue} 
-        setInputValue={setInputValue}
-        onChatInputFocus={setIsChatInputFocused}
-      />
-      
       {/* Bottom Navigation */}
-      {!isChatInputFocused && <BottomNavigation />}
+      <BottomNavigation />
     </>
   )
 }
