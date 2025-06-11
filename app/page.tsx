@@ -62,7 +62,7 @@ export default function CoverIoApp() {
         className="hidden"
       />
       
-      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden" style={{ touchAction: 'none' }}>
+      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden max-w-full" style={{ touchAction: 'none' }}>
         {/* Profile Avatar */}
         <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden">
           <div className="flex flex-col items-center">

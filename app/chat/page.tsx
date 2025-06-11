@@ -185,16 +185,17 @@ function ChatContent() {
         className="hidden"
       />
       
-      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden bg-black">
+      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden bg-black max-w-full">
         {/* Header with Back Button */}
         <div className="flex items-center border-b border-white/10">
           <button 
             onClick={handleBack}
-            className="w-10 h-10 flex items-center justify-center rounded-full m-4"
+            className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 m-4"
             style={{
               background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
+              boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+              borderRadius: '44.45px',
               backdropFilter: 'blur(10.67px)',
-              padding: '16px',
             }}
           >
             <CustomIcon name="back" size={20} className="text-white" />

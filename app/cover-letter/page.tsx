@@ -198,7 +198,7 @@ export default function CoverLetterPage() {
   }, [lastScrollY])
 
   return (
-    <div className="cover-letter-page">
+    <div className="cover-letter-page max-w-full overflow-x-hidden">
       {/* Full-Screen Editor */}
       {editingSection && (
         <div className="fixed inset-0 bg-black z-[100] flex flex-col">
@@ -416,7 +416,7 @@ export default function CoverLetterPage() {
         </div>
       )}
 
-      <div className="text-[#ffffff] relative">
+      <div className="text-[#ffffff] relative max-w-full overflow-x-hidden">
         {/* Header */}
         <div className="sticky top-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm">
           <div className="flex justify-end items-center p-4">
