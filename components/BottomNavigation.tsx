@@ -40,7 +40,7 @@ export default function BottomNavigation({}: BottomNavigationProps) {
 
   return (
     <>
-              <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 z-50 bg-transparent">
+              <div className="fixed bottom-0 left-0 right-0 px-4 pb-2 z-50 bg-transparent">
         {/* Navigation */}
         <div 
           className="p-[1px] rounded-[991.36px] inline-flex w-full"

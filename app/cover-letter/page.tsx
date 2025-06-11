@@ -419,8 +419,7 @@ export default function CoverLetterPage() {
       <div className="text-[#ffffff] relative">
         {/* Header */}
         <div className="sticky top-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm">
-          <div className="flex justify-between items-center p-4">
-            <h1 className="text-white text-2xl font-serif opacity-80">Akshay's Cover Letter</h1>
+          <div className="flex justify-end items-center p-4">
             <div className="flex gap-3">
               <button 
                 className="flex items-center gap-2 px-4 py-2"
