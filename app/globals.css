@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 /* Open Sauce One Font Face Declarations */
 @font-face {
@@ -53,10 +54,12 @@ body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
   /* Prevent elastic scrolling */
   overscroll-behavior: contain;
-  /* Disable momentum scrolling globally */
-  -webkit-overflow-scrolling: auto;
+  /* Enable momentum scrolling */
+  -webkit-overflow-scrolling: touch;
   /* Prevent viewport height changes */
   position: relative;
   height: auto;
@@ -69,16 +72,59 @@ body {
   }
 }
 
-/* Cover Letter Page Specific Styles - Minimal for natural scrolling */
+/* Glassmorphic File Card Component */
+.glassmorphic-card {
+  background: linear-gradient(137deg, rgba(255, 255, 255, 0.04) 0%, rgba(113.69, 113.69, 113.69, 0.04) 95%);
+  box-shadow: 0px 0.656730055809021px 15.761519432067871px -0.656730055809021px rgba(0, 0, 0, 0.18);
+  outline: 1.48px rgba(255, 255, 255, 0.10) solid;
+  outline-offset: -1.48px;
+  backdrop-filter: blur(20.39px);
+  -webkit-backdrop-filter: blur(20.39px);
+  transition: all 0.2s ease-in-out;
+}
+
+.glassmorphic-card:hover {
+  background: linear-gradient(137deg, rgba(255, 255, 255, 0.08) 0%, rgba(113.69, 113.69, 113.69, 0.08) 95%);
+  outline: 1.48px rgba(255, 255, 255, 0.15) solid;
+  transform: translateY(-1px);
+  box-shadow: 0px 1px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Cover Letter Page Specific Styles - Force GPU acceleration */
 .cover-letter-page {
   position: relative;
   min-height: 100vh;
+  /* Force hardware acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: scroll-position;
+  /* Smooth scrolling with GPU */
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  /* Prevent layout shifts */
+  contain: layout style paint;
+}
+
+/* Force hardware acceleration for all elements */
+.cover-letter-page * {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+}
+
+/* Optimize main content for smooth scrolling */
+.cover-letter-page .main-content {
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 @media screen and (max-width: 768px) {
   .cover-letter-page {
-    position: relative;
-    min-height: 100vh;
+    /* Mobile-specific GPU acceleration */
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    transform: translate3d(0, 0, 0);
   }
   
   /* Prevent keyboard-triggered viewport changes */

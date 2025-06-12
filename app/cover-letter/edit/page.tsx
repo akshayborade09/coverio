@@ -245,67 +245,60 @@ function EditPageContent() {
       }}
     >
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50" style={{ transform: 'translateZ(0)', paddingTop: 'env(safe-area-inset-top)', minHeight: '80px' }}>
-        {/* Progressive blur layer */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div 
-            className="absolute inset-0"
+      <div className="fixed top-0 left-0 right-0 z-50">
+        {/* Header container with progressive blur */}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 relative">
+          {/* Progressive blur overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none"
             style={{
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0) 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0) 100%)'
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.8) 80%, rgba(0,0,0,0) 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.8) 80%, rgba(0,0,0,0) 100%)'
             }}
-          ></div>
-        </div>
-        <div className="flex items-center justify-between gap-3 px-4 py-4 relative z-10" style={{ minHeight: '80px' }}>
-          <input 
-            type="text"
-            value={editContent.title}
-            onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
-            className="flex-1 bg-transparent text-white text- font-serif border-none outline-none opacity-80 placeholder-gray-400"
-            placeholder="Section title"
-            style={{ fontSize: '22px' }}
           />
           
-          {/* Save Button */}
-          <button 
-            onClick={handleSave}
-            className="w-12 h-12 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
-            style={{
-              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-              borderRadius: '44.45px',
-            }}
-          >
-            <CustomIcon name="check" size={18} className="text-[#ffffff]" />
-          </button>
-          
-          {/* Close Button */}
-          <button 
-            onClick={handleClose}
-            className="w-12 h-12 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
-            style={{
-              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-              boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-              borderRadius: '44.45px',
-              outline: '1px rgba(255, 255, 255, 0.10) solid',
-              outlineOffset: '-1px',
-              backdropFilter: 'blur(10.67px)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.35) 0%, rgba(113.69, 113.69, 113.69, 0.25) 40%)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)'
-            }}
-          >
-            <CustomIcon name="close" size={20} className="text-[#ffffff]" />
-          </button>
+          {/* Header Content */}
+          <div className="flex items-center justify-between gap-3 w-full relative z-10">
+            <input 
+              type="text"
+              value={editContent.title}
+              onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
+              className="flex-1 bg-transparent text-white font-serif border-none outline-none opacity-80 placeholder-gray-400"
+              placeholder="Section title"
+              style={{ fontSize: '20px' }}
+            />
+            
+            {/* Save Button */}
+            <button 
+              onClick={handleSave}
+              className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
+              style={{
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                borderRadius: '20px',
+              }}
+            >
+              <CustomIcon name="check" size={16} className="text-[#ffffff]" />
+            </button>
+            
+            {/* Close Button */}
+            <button 
+              onClick={handleClose}
+              className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
+              style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                borderRadius: '20px',
+              }}
+            >
+              <CustomIcon name="close" size={16} className="text-[#ffffff]" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="px-4 pb-8" style={{ paddingTop: 'calc(80px + env(safe-area-inset-top))' }}>
+      <div className="pt-16 px-4 pb-8">
         {/* Delete Confirmation Toast */}
         {showDeleteToast && (
           <div className="fixed bottom-20 left-4 right-4 z-10">

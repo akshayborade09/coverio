@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import CustomIcon from "@/components/CustomIcon"
+import FileCard from "@/components/FileCard"
 
 interface DocumentData {
   name: string
@@ -369,7 +370,7 @@ function ChatContent() {
             <button 
               onClick={handleAttach}
               disabled={selectedDocuments.length >= 3}
-              className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+              className="w-10` h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -382,7 +383,7 @@ function ChatContent() {
             <button 
               onClick={handleSend}
               disabled={!inputValue.trim() && selectedDocuments.length === 0}
-              className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+              className="w-10 h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -390,7 +391,7 @@ function ChatContent() {
                 backdropFilter: 'blur(10.67px)',
               }}
             >
-              <CustomIcon name="send" size={20} className="text-white" />
+              <CustomIcon name="send" size={24} className="text-white" />
             </button>
           </div>
         </div>
@@ -523,7 +524,7 @@ function ChatContent() {
                               }}
                               className="flex items-center justify-center"
                             >
-                              <CustomIcon name="cancel-attach" size={16} className="text-white" />
+                              <CustomIcon name="cancel-attach" size={24} className="text-white" />
                             </button>
                           </div>
                         )}
@@ -614,7 +615,7 @@ function ChatContent() {
               <button 
                 onClick={handleAttach}
                 disabled={selectedDocuments.length >= 3}
-                className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -622,12 +623,12 @@ function ChatContent() {
                   backdropFilter: 'blur(10.67px)',
                 }}
               >
-                <CustomIcon name="attach" size={24} className="text-white" />
+                <CustomIcon name="attach" size={20} className="text-white" />
               </button>
               <button 
                 onClick={handleSend}
                 disabled={!inputValue.trim() && selectedDocuments.length === 0}
-                className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',

@@ -1,7 +1,7 @@
 "use client"
 
-import { Copy, Trash2, FileText } from "lucide-react"
 import BottomNavigation from "@/components/BottomNavigation"
+import CustomIcon from "@/components/CustomIcon"
 
 export default function MySpacePage() {
   const documents = [
@@ -41,34 +41,62 @@ export default function MySpacePage() {
     switch (iconType) {
       case "pdf":
         return (
-          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-bold">PDF</span>
-          </div>
+          <img 
+            src="/Images/space-pdf.svg" 
+            alt="PDF icon" 
+            className="w-8 h-8"
+            width={32}
+            height={32}
+          />
         )
       case "doc":
         return (
-          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-bold">DOC</span>
-          </div>
+          <img 
+            src="/Images/space-doc.svg" 
+            alt="Document icon" 
+            className="w-8 h-8"
+            width={32}
+            height={32}
+          />
         )
       case "linkedin":
         return (
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-bold">in</span>
-          </div>
+          <img 
+            src="/Images/space-link.svg" 
+            alt="Link icon" 
+            className="w-8 h-8"
+            width={32}
+            height={32}
+          />
+        )
+      case "img":
+        return (
+          <img 
+            src="/Images/space-img.svg" 
+            alt="Image icon" 
+            className="w-8 h-8"
+            width={32}
+            height={32}
+          />
         )
       default:
         return (
-          <div className="w-10 h-10 bg-gray-500 rounded-lg flex items-center justify-center">
-            <FileText size={20} className="text-white" />
-          </div>
+          <img 
+            src="/Images/space-doc.svg" 
+            alt="Document icon" 
+            className="w-8 h-8"
+            width={32}
+            height={32}
+          />
         )
     }
   }
 
   return (
     <>
-      <div className="flex flex-col min-h-screen text-[#ffffff] relative pb-24">
+      <div 
+        className="flex flex-col min-h-screen text-[#ffffff] relative pb-24"
+      >
 
         {/* Profile Section */}
         <div className="flex flex-col items-center py-8">
@@ -81,34 +109,89 @@ export default function MySpacePage() {
               <div className="w-8 h-2 bg-black rounded-full"></div>
             </div>
           </div>
-          <h1 className="text-2xl font-serif mb-1">Akshay Borhade</h1>
-          <p className="text-[#ffffff] opacity-70">UX Team Lead @ OLA</p>
+          <h1 className="text-2xl mb-1" style={{fontFamily:'"Playfair Display", serif'}}>Akshay Borhade</h1>
+          <p className="text-[#ffffff] opacity-70" style={{fontFamily:'"Playfair Display", serif'}}>UX Team Lead @ OLA</p>
         </div>
 
         {/* Documents List */}
-        <div className="flex-1 px-6 space-y-4 overflow-y-auto">
+        <div className="flex-1 px-4 space-y-4 overflow-y-auto">
           {documents.map((doc, index) => (
-            <div key={index} className="bg-[#202020] rounded-2xl p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-2">
-                  <FileText size={16} className="text-[#ffffff] opacity-70" />
-                  <span className="text-[#ffffff] opacity-70 text-sm">{doc.type}</span>
-                </div>
-                <span className="text-[#405059] text-xs">{doc.date}</span>
+            <div
+              key={index}
+              className="p-0 rounded-2xl"
+              style={{
+                background: 'linear-gradient(15deg, rgba(255,255,255,0.04) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.04) 100%)'
+              }}
+            >
+              <div 
+                className="rounded-2xl p-3"
+                style={{
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2">
+                    <CustomIcon 
+                      name={doc.type === "Link" ? "link2" : "document"} 
+                      size={16} 
+                      className="text-[#ffffff] opacity-70" 
+                    />
+                    <span 
+                      className="text-[#ffffff] opacity-70"
+                      style={{
+                        color: 'white',
+                        fontSize: 12,
+                        fontFamily: 'Open Sauce One',
+                        fontWeight: '400',
+                        lineHeight: '18px'
+                      }}
+                    >
+                      {doc.type}
+                    </span>
+                  </div>
+                <span 
+                  style={{
+                    opacity: 0.30,
+                    textAlign: 'right',
+                    color: 'white',
+                    fontSize: 12,
+                    fontFamily: 'Open Sauce One',
+                    fontWeight: '400',
+                    lineHeight: '18px'
+                  }}
+                >
+                  {doc.date}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   {getFileIcon(doc.icon)}
-                  <span className="text-[#ffffff] flex-1">{doc.name}</span>
+                  <span 
+                    className="text-[#ffffff] flex-1 break-words"
+                    style={{
+                      color: 'white',
+                      fontSize: 14,
+                      fontFamily: 'Open Sauce One',
+                      fontWeight: '400',
+                      lineHeight: '22px'
+                    }}
+                  >
+                    {doc.name}
+                  </span>
                 </div>
-                <div className="flex gap-2">
-                  <button className="w-8 h-8 bg-[#405059] rounded-full flex items-center justify-center">
-                    <Copy size={16} className="text-[#ffffff]" />
-                  </button>
-                  <button className="w-8 h-8 bg-[#405059] rounded-full flex items-center justify-center">
-                    <Trash2 size={16} className="text-[#ffffff]" />
+                <div className="flex gap-2 flex-shrink-0 opacity-70">
+                  {doc.type !== "Link" && (
+                    <button className="w-8 h-8 rounded-full flex items-center justify-center">
+                      <CustomIcon name="doc-download" size={20} className="text-[#ffffff]" />
+                    </button>
+                  )}
+                  <button className="w-8 h-8 rounded-full flex items-center justify-center">
+                    <CustomIcon name="doc-delete" size={20} className="text-[#ffffff]" />
                   </button>
                 </div>
+              </div>
               </div>
             </div>
           ))}

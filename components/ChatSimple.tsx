@@ -160,7 +160,7 @@ export default function ChatSimple({
               type="button"
               className="w-8 h-8 flex items-center justify-center text-white opacity-50 hover:opacity-100 transition-opacity"
             >
-              <CustomIcon name="attach" size={20} />
+              <CustomIcon name="attach" size={24} />
             </button>
             
             <input
@@ -182,7 +182,7 @@ export default function ChatSimple({
                 input.trim() && !isLoading ? 'text-blue-400 opacity-100' : 'text-white opacity-30'
               }`}
             >
-              <CustomIcon name="send" size={20} />
+              <CustomIcon name="send" size={24} />
             </button>
           </div>
         </form>

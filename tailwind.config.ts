@@ -13,6 +13,8 @@ const config: Config = {
       fontFamily: {
         'sans': ['Open Sauce One', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         'open-sauce-one': ['Open Sauce One', 'Inter', 'sans-serif'],
+        'playfair': ['Playfair Display', 'Georgia', 'serif'],
+        'serif': ['Playfair Display', 'Georgia', 'serif'],
       },
       colors: {
         background: "#000000",
