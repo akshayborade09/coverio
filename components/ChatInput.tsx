@@ -75,7 +75,7 @@ export default function ChatInput({ inputValue = "", setInputValue, onChatInputF
           {/* Attach and Send buttons above keyboard */}
           <div className="flex justify-between gap-2 px-4 pb-4" style={{ paddingBottom: '16px' }}>
             <button 
-              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+              className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -87,7 +87,7 @@ export default function ChatInput({ inputValue = "", setInputValue, onChatInputF
               <CustomIcon name="attach" size={24} className="text-white" />
             </button>
             <button 
-              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+              className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -199,7 +199,7 @@ export default function ChatInput({ inputValue = "", setInputValue, onChatInputF
             {/* Icons Area */}
             <div className="flex justify-between gap-2">
               <button 
-                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+                className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -211,7 +211,7 @@ export default function ChatInput({ inputValue = "", setInputValue, onChatInputF
                 <CustomIcon name="attach" size={24} className="text-white" />
               </button>
               <button 
-                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+                className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',

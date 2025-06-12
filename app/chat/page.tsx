@@ -369,7 +369,7 @@ function ChatContent() {
             <button 
               onClick={handleAttach}
               disabled={selectedDocuments.length >= 3}
-              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+              className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -382,7 +382,7 @@ function ChatContent() {
             <button 
               onClick={handleSend}
               disabled={!inputValue.trim() && selectedDocuments.length === 0}
-              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+              className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -614,7 +614,7 @@ function ChatContent() {
               <button 
                 onClick={handleAttach}
                 disabled={selectedDocuments.length >= 3}
-                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+                className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -627,7 +627,7 @@ function ChatContent() {
               <button 
                 onClick={handleSend}
                 disabled={!inputValue.trim() && selectedDocuments.length === 0}
-                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+                className="w-16 h-16 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',

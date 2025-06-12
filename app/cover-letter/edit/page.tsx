@@ -1,0 +1,604 @@
+"use client"
+
+import { useState, useEffect, useRef, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import CustomIcon from "@/components/CustomIcon"
+
+function EditPageContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const sectionKey = searchParams.get('section')
+  const [editContent, setEditContent] = useState({ title: '', bullets: [''] })
+  const [showDeleteToast, setShowDeleteToast] = useState(false)
+  const [bulletToDelete, setBulletToDelete] = useState<number | null>(null)
+  const [draggedBullet, setDraggedBullet] = useState<number | null>(null)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStartX, setDragStartX] = useState(0)
+  const [draggedBulletPosition, setDraggedBulletPosition] = useState({ top: 0, height: 0 })
+  const [isInputFocused, setIsInputFocused] = useState(false)
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [showFeedback, setShowFeedback] = useState(false)
+  const dragAnimationRef = useRef<number | null>(null)
+  const bulletRefs = useRef<(HTMLTextAreaElement | null)[]>([])
+
+  // Section data (same as cover letter page)
+  const sections = {
+    'proven-impact': {
+      title: 'Proven Impact',
+      bullets: [
+        '778% user growth and 99% Day 1 retention through strategic design improvements',
+        '40% increase in monthly active users and resolved critical Day 0 retention issues',
+        '1,500%+ session growth rates by optimizing user flows and engagement patterns',
+        'Consistently improved retention across Day 1, Day 7, and Day 30 metrics'
+      ]
+    },
+    'core-strengths': {
+      title: 'Core Strengths',
+      bullets: [
+        'Cross-industry expertise: Mobility, fintech, parenting solutions, and international markets',
+        'End-to-end ownership: From strategy and prototyping to developer handoff and metrics analysis',
+        'Technical innovation: AI workflows for design-to-code automation and rapid prototyping'
+      ]
+    },
+    'technical-skills': {
+      title: 'Technical Skills',
+      bullets: [
+        'Advanced proficiency in Figma, Sketch, Adobe Creative Suite, and Framer',
+        'Frontend development: React, TypeScript, CSS3, and responsive design principles',
+        'Data analysis tools: Mixpanel, Google Analytics, Hotjar, and A/B testing platforms'
+      ]
+    },
+    'professional-experience': {
+      title: 'Professional Experience',
+      bullets: [
+        '5+ years leading design teams at high-growth startups and established companies',
+        'Successfully launched 15+ mobile applications across iOS and Android platforms',
+        'Managed design systems serving millions of users across multiple product lines'
+      ]
+    },
+    'leadership-collaboration': {
+      title: 'Leadership & Collaboration',
+      bullets: [
+        'Led cross-functional teams of 12+ designers, developers, and product managers',
+        'Established design workflows that reduced handoff time by 60% and improved quality',
+        'Mentored junior designers, with 90% receiving promotions within 18 months'
+      ]
+    },
+    'education-certifications': {
+      title: 'Education & Certifications',
+      bullets: [
+        'Master\'s in Human-Computer Interaction from Stanford University',
+        'Google UX Design Professional Certificate and Nielsen Norman Group UX certification',
+        'Certified Scrum Product Owner (CSPO) and Design Sprint facilitator'
+      ]
+    },
+    'notable-projects': {
+      title: 'Notable Projects',
+      bullets: [
+        'Redesigned checkout flow resulting in 34% reduction in cart abandonment',
+        'Created accessibility-first design system adopted by 8 product teams',
+        'Led AI-powered personalization features that increased user engagement by 250%'
+      ]
+    },
+    'industry-recognition': {
+      title: 'Industry Recognition',
+      bullets: [
+        'Featured in Fast Company\'s "Most Creative People in Business" list for 2023',
+        'Winner of UX Awards "Best Mobile App Design" for innovative fintech solutions',
+        'Speaker at 12+ international design conferences including Figma Config and Adobe MAX'
+      ]
+    },
+    'cross-functional-expertise': {
+      title: 'Cross-functional Expertise',
+      bullets: [
+        'Collaborated with C-suite executives on product strategy and roadmap planning',
+        'Partnered with engineering teams to ensure 95% design-to-code accuracy',
+        'Worked with data science teams to implement ML-driven personalization features'
+      ]
+    },
+    'innovation-strategy': {
+      title: 'Innovation & Strategy',
+      bullets: [
+        'Pioneered AI-assisted design workflows that reduced concept-to-prototype time by 70%',
+        'Established design research methodologies now used across 3 different companies',
+        'Led strategic initiatives that contributed to $50M+ in additional revenue'
+      ]
+    }
+  }
+
+  // Initialize content based on section
+  useEffect(() => {
+    if (sectionKey && sections[sectionKey as keyof typeof sections]) {
+      const section = sections[sectionKey as keyof typeof sections]
+      setEditContent({ title: section.title, bullets: [...section.bullets] })
+    }
+  }, [sectionKey])
+
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (dragAnimationRef.current) {
+        cancelAnimationFrame(dragAnimationRef.current)
+      }
+    }
+  }, [])
+
+  // Auto-focus bullet point when editing
+  const focusBulletPoint = (index: number) => {
+    setTimeout(() => {
+      const textareaRef = bulletRefs.current[index]
+      if (textareaRef) {
+        textareaRef.focus()
+        // Scroll the bullet point into the center of the screen
+        textareaRef.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        })
+      }
+    }, 100)
+  }
+
+  const handleSave = () => {
+    router.back()
+  }
+
+  const handleClose = () => {
+    router.back()
+  }
+
+  // Drag and delete handlers
+  const handleDeleteBullet = (index: number) => {
+    setBulletToDelete(index)
+    setShowDeleteToast(true)
+  }
+
+  const confirmDeleteBullet = () => {
+    if (bulletToDelete !== null) {
+      const newBullets = editContent.bullets.filter((_, i) => i !== bulletToDelete)
+      setEditContent(prev => ({ ...prev, bullets: newBullets }))
+    }
+    setShowDeleteToast(false)
+    setBulletToDelete(null)
+  }
+
+  const cancelDeleteBullet = () => {
+    setShowDeleteToast(false)
+    setBulletToDelete(null)
+  }
+
+  const handleDragStart = (e: React.TouchEvent | React.MouseEvent, index: number) => {
+    setIsDragging(true)
+    setDraggedBullet(index)
+    setDragOffset(0)
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    setDragStartX(clientX)
+    
+    // Capture the bullet point's position for delete button alignment
+    const target = e.currentTarget as HTMLElement
+    const rect = target.getBoundingClientRect()
+    setDraggedBulletPosition({
+      top: rect.top + window.scrollY,
+      height: rect.height
+    })
+  }
+
+  const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isDragging || draggedBullet === null) return
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    
+    // Allow left swipe (negative offset)
+    const newOffset = Math.min(0, clientX - dragStartX)
+    const clampedOffset = Math.max(newOffset, -60)
+    
+    // Use requestAnimationFrame for smooth updates
+    if (dragAnimationRef.current) {
+      cancelAnimationFrame(dragAnimationRef.current)
+    }
+    
+    dragAnimationRef.current = requestAnimationFrame(() => {
+      setDragOffset(clampedOffset)
+    })
+  }
+
+  const handleDragEnd = () => {
+    if (dragOffset < -30) {
+      // Keep delete button visible if swiped more than 30px left
+      setDragOffset(-60)
+    } else {
+      // Reset if not swiped enough
+      setDragOffset(0)
+      setDraggedBullet(null)
+    }
+    setIsDragging(false)
+  }
+
+  const resetDrag = () => {
+    if (dragAnimationRef.current) {
+      cancelAnimationFrame(dragAnimationRef.current)
+      dragAnimationRef.current = null
+    }
+    setDragOffset(0)
+    setDraggedBullet(null)
+    setIsDragging(false)
+  }
+
+  const showFeedbackMessage = (message: string) => {
+    setFeedbackMessage(message)
+    setShowFeedback(true)
+    setTimeout(() => setShowFeedback(false), 2000)
+  }
+
+  return (
+    <div 
+      className="edit-page min-h-screen"
+      style={{
+        color: '#ffffff',
+        background: '#000000',
+        backgroundImage: 'url(/Images/bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-20" style={{ transform: 'translateZ(0)' }}>
+        {/* Progressive blur layer */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div 
+            className="absolute inset-0"
+            style={{
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0) 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0) 100%)'
+            }}
+          ></div>
+        </div>
+        <div className="flex items-center justify-between gap-3 px-4 py-4 relative z-10 h-full">
+          <input 
+            type="text"
+            value={editContent.title}
+            onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
+            className="flex-1 bg-transparent text-white text- font-serif border-none outline-none opacity-80 placeholder-gray-400"
+            placeholder="Section title"
+            style={{ fontSize: '22px' }}
+          />
+          
+          {/* Save Button */}
+          <button 
+            onClick={handleSave}
+            className="w-12 h-12 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
+            style={{
+              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+              borderRadius: '44.45px',
+            }}
+          >
+            <CustomIcon name="check" size={18} className="text-[#ffffff]" />
+          </button>
+          
+          {/* Close Button */}
+          <button 
+            onClick={handleClose}
+            className="w-12 h-12 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
+            style={{
+              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+              boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+              borderRadius: '44.45px',
+              outline: '1px rgba(255, 255, 255, 0.10) solid',
+              outlineOffset: '-1px',
+              backdropFilter: 'blur(10.67px)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.35) 0%, rgba(113.69, 113.69, 113.69, 0.25) 40%)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)'
+            }}
+          >
+            <CustomIcon name="close" size={20} className="text-[#ffffff]" />
+          </button>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="pt-20 px-4 pb-8">
+        {/* Delete Confirmation Toast */}
+        {showDeleteToast && (
+          <div className="fixed bottom-20 left-4 right-4 z-10">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl"
+              style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                outline: '1px rgba(255, 255, 255, 0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)',
+              }}
+            >
+              <span className="text-white text-sm font-medium flex-1">Delete the bullet point?</span>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={confirmDeleteBullet}
+                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full transition-colors"
+                >
+                  Confirm
+                </button>
+                <button 
+                  onClick={cancelDeleteBullet}
+                  className="w-6 h-6 flex items-center justify-center text-white opacity-70 hover:opacity-100 transition-opacity"
+                >
+                  <CustomIcon name="close" size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-4 py-2">
+          {editContent.bullets.map((bullet, index) => (
+            <div key={index} className="relative">
+              {/* Main Bullet Content */}
+              <div 
+                className="flex items-start"
+                style={{
+                  transform: draggedBullet === index ? `translateX(${dragOffset}px)` : 'translateX(0px)',
+                  backgroundColor: (draggedBullet === index && dragOffset !== 0) ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                  borderRadius: (draggedBullet === index && dragOffset !== 0) ? '16px' : '0px',
+                  padding: '12px 8px 8px 0px',
+                  transition: isDragging 
+                    ? 'background-color 0.2s ease-out, border-radius 0.2s ease-out' 
+                    : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.2s ease-out, border-radius 0.2s ease-out',
+                  willChange: isDragging ? 'transform' : 'auto'
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  handleDragStart(e, index)
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  handleDragStart(e, index)
+                }}
+                onTouchMove={(e) => {
+                  e.stopPropagation()
+                  handleDragMove(e)
+                }}
+                onMouseMove={isDragging ? (e) => {
+                  e.stopPropagation()
+                  handleDragMove(e)
+                } : undefined}
+                onTouchEnd={(e) => {
+                  e.stopPropagation()
+                  handleDragEnd()
+                }}
+                onMouseUp={(e) => {
+                  e.stopPropagation()
+                  handleDragEnd()
+                }}
+                onMouseLeave={handleDragEnd}
+              >
+                <textarea
+                  ref={(el) => {
+                    bulletRefs.current[index] = el
+                    if (el) {
+                      el.style.height = 'auto';
+                      el.style.height = el.scrollHeight + 'px';
+                    }
+                  }}
+                  value={bullet}
+                  onChange={(e) => {
+                    const newValue = e.target.value
+                    const newBullets = [...editContent.bullets]
+                    
+                    if (newValue === '' && editContent.bullets.length > 1) {
+                      // First deletion: Clear content but keep bullet, show placeholder
+                      if (editContent.bullets[index] !== '') {
+                        newBullets[index] = ''
+                        setEditContent(prev => ({ ...prev, bullets: newBullets }))
+                        // Keep cursor at the end of the now-empty field
+                        setTimeout(() => {
+                          if (bulletRefs.current[index]) {
+                            bulletRefs.current[index]?.focus()
+                            const textarea = bulletRefs.current[index]
+                            if (textarea) {
+                              textarea.setSelectionRange(0, 0)
+                            }
+                          }
+                        }, 0)
+                      } else {
+                        // Second deletion: Actually remove the bullet and focus previous
+                        newBullets.splice(index, 1)
+                        if (draggedBullet === index) {
+                          resetDrag()
+                        }
+                        setEditContent(prev => ({ ...prev, bullets: newBullets }))
+                        showFeedbackMessage('Bullet point removed')
+                        
+                        // Focus on the previous bullet
+                        const focusIndex = index > 0 ? index - 1 : 0
+                        setTimeout(() => {
+                          if (bulletRefs.current[focusIndex]) {
+                            bulletRefs.current[focusIndex]?.focus()
+                            // Move cursor to end
+                            const textarea = bulletRefs.current[focusIndex]
+                            if (textarea) {
+                              textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+                            }
+                          }
+                        }, 50)
+                      }
+                    } else {
+                      // Update the bullet content
+                      newBullets[index] = newValue
+                      setEditContent(prev => ({ ...prev, bullets: newBullets }))
+                    }
+                    
+                    // Auto-resize after state update
+                    setTimeout(() => {
+                      if (e.target) {
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                      }
+                    }, 0);
+                  }}
+                  onFocus={(e) => {
+                    setIsInputFocused(true)
+                    focusBulletPoint(index)
+                    // Reset drag when focusing
+                    resetDrag()
+                  }}
+                  onBlur={() => setIsInputFocused(false)}
+                  onKeyDown={(e) => {
+                    // Handle backspace on empty bullet point
+                    if (e.key === 'Backspace' && bullet === '' && editContent.bullets.length > 1) {
+                      e.preventDefault()
+                      const newBullets = [...editContent.bullets]
+                      newBullets.splice(index, 1)
+                      if (draggedBullet === index) {
+                        resetDrag()
+                      }
+                      setEditContent(prev => ({ ...prev, bullets: newBullets }))
+                      showFeedbackMessage('Bullet point removed')
+                      
+                      // Focus on the previous bullet
+                      const focusIndex = index > 0 ? index - 1 : 0
+                      setTimeout(() => {
+                        if (bulletRefs.current[focusIndex]) {
+                          bulletRefs.current[focusIndex]?.focus()
+                          // Move cursor to end
+                          const textarea = bulletRefs.current[focusIndex]
+                          if (textarea) {
+                            textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+                          }
+                        }
+                      }, 50)
+                    }
+                    
+                    // Handle Enter key to add new bullet point
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const newBullets = [...editContent.bullets]
+                      // Insert new empty bullet after current index
+                      newBullets.splice(index + 1, 0, '')
+                      setEditContent(prev => ({ ...prev, bullets: newBullets }))
+                      
+                      // Focus on the new bullet point
+                      setTimeout(() => {
+                        if (bulletRefs.current[index + 1]) {
+                          bulletRefs.current[index + 1]?.focus()
+                          const textarea = bulletRefs.current[index + 1]
+                          if (textarea) {
+                            textarea.setSelectionRange(0, 0)
+                          }
+                        }
+                      }, 50)
+                    }
+                  }}
+                  className="w-full bg-transparent text-white resize-none border-none outline-none leading-relaxed"
+                  style={{
+                    fontSize: '16px',
+                    lineHeight: '1.6',
+                    wordWrap: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                    minHeight: '24px',
+                    opacity: '0.6',
+                    // Prevent mobile zoom and scroll issues
+                    touchAction: 'manipulation'
+                  }}
+                  placeholder={bullet === '' ? "Bullet point" : "Enter bullet point..."}
+                  rows={1}
+                />
+                
+              </div>
+              
+              {/* Delete Button - Fixed to right side, aligned with dragged bullet */}
+              {editContent.bullets.length > 1 && draggedBullet === index && (
+                <button
+                  onClick={() => handleDeleteBullet(index)}
+                  className="fixed w-12 h-12 flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-full transition-all duration-200 z-10"
+                  style={{
+                    right: '16px',
+                    top: `${draggedBulletPosition.top + (draggedBulletPosition.height / 2) - 24}px`, // Changed from -16 to -24 (half of button height)
+                    opacity: dragOffset < -20 ? 1 : 0,
+                    scale: dragOffset < -20 ? 1 : 0.8,
+                    transition: 'opacity 0.2s ease-out, scale 0.2s ease-out'
+                  }}
+                >
+                  <CustomIcon name="trash" size={20} className="text-white" />
+                </button>
+              )}
+            </div>
+          ))}
+          
+          {/* Add Bullet Point Button */}
+          <div className="pt-4">
+            <button 
+              className="flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98"
+              onClick={() => setEditContent(prev => ({ ...prev, bullets: [...prev.bullets, ''] }))}
+              style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                borderRadius: '44.45px',
+                outline: '1px rgba(255, 255, 255, 0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)',
+              }}
+            >
+              <CustomIcon name="plus" size={24} />
+              <span>Add bullet point</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Feedback Toast */}
+      {showFeedback && (
+        <div className="fixed bottom-4 left-4 right-4 z-50">
+          <div className="flex items-center justify-center">
+            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium"
+              style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                outline: '1px rgba(255, 255, 255, 0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)',
+              }}
+            >
+              {feedbackMessage}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Loading component for Suspense fallback
+function EditPageLoading() {
+  return (
+    <div 
+      className="edit-page min-h-screen flex items-center justify-center"
+      style={{
+        color: '#ffffff',
+        background: '#000000',
+        backgroundImage: 'url(/Images/bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      <div className="text-white text-lg">Loading...</div>
+    </div>
+  )
+}
+
+export default function EditPage() {
+  return (
+    <Suspense fallback={<EditPageLoading />}>
+      <EditPageContent />
+    </Suspense>
+  )
+}
