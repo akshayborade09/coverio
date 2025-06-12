@@ -20,6 +20,9 @@ export default function CoverLetterPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
   const [isInputFocused, setIsInputFocused] = useState(false)
+  const [isBottomSheetAnimating, setIsBottomSheetAnimating] = useState(false)
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false)
+  const dragAnimationRef = useRef<number | null>(null)
 
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
@@ -43,7 +46,70 @@ export default function CoverLetterPage() {
         'Technical innovation: AI workflows for design-to-code automation and'
       ]
     },
-    // ... other sections will be added
+    'technical-skills': {
+      title: 'Technical Skills',
+      bullets: [
+        'Advanced proficiency in Figma, Sketch, Adobe Creative Suite, and Framer',
+        'Frontend development: React, TypeScript, CSS3, and responsive design principles',
+        'Data analysis tools: Mixpanel, Google Analytics, Hotjar, and A/B testing platforms'
+      ]
+    },
+    'professional-experience': {
+      title: 'Professional Experience',
+      bullets: [
+        '5+ years leading design teams at high-growth startups and established companies',
+        'Successfully launched 15+ mobile applications across iOS and Android platforms',
+        'Managed design systems serving millions of users across multiple product lines'
+      ]
+    },
+    'leadership-collaboration': {
+      title: 'Leadership & Collaboration',
+      bullets: [
+        'Led cross-functional teams of 12+ designers, developers, and product managers',
+        'Established design workflows that reduced handoff time by 60% and improved quality',
+        'Mentored junior designers, with 90% receiving promotions within 18 months'
+      ]
+    },
+    'education-certifications': {
+      title: 'Education & Certifications',
+      bullets: [
+        'Master\'s in Human-Computer Interaction from Stanford University',
+        'Google UX Design Professional Certificate and Nielsen Norman Group UX certification',
+        'Certified Scrum Product Owner (CSPO) and Design Sprint facilitator'
+      ]
+    },
+    'notable-projects': {
+      title: 'Notable Projects',
+      bullets: [
+        'Redesigned checkout flow resulting in 34% reduction in cart abandonment',
+        'Created accessibility-first design system adopted by 8 product teams',
+        'Led AI-powered personalization features that increased user engagement by 250%'
+      ]
+    },
+    'industry-recognition': {
+      title: 'Industry Recognition',
+      bullets: [
+        'Featured in Fast Company\'s "Most Creative People in Business" list for 2023',
+        'Winner of UX Awards "Best Mobile App Design" for innovative fintech solutions',
+        'Speaker at 12+ international design conferences including Figma Config and Adobe MAX'
+      ]
+    },
+    'cross-functional-expertise': {
+      title: 'Cross-functional Expertise',
+      bullets: [
+        'Collaborated with C-suite executives on product strategy and roadmap planning',
+        'Partnered with engineering teams to ensure 95% design-to-code accuracy',
+        'Worked with data science teams to implement ML-driven personalization features'
+      ]
+    },
+    'innovation-strategy': {
+      title: 'Innovation & Strategy',
+      bullets: [
+        'Pioneered AI-assisted design workflows that reduced concept-to-prototype time by 70%',
+        'Established design research methodologies now used across 3 different companies',
+        'Led strategic initiatives that contributed to $50M+ in additional revenue'
+      ]
+    }
   }
 
   const handleEditSection = (sectionKey: string) => {
@@ -51,12 +117,22 @@ export default function CoverLetterPage() {
     if (section) {
       setEditContent({ title: section.title, bullets: [...section.bullets] })
       setEditingSection(sectionKey)
+      setIsBottomSheetVisible(true)
+      // Trigger slide-in animation
+      setTimeout(() => {
+        setIsBottomSheetAnimating(true)
+      }, 10)
     }
   }
 
   const handleCloseEditor = () => {
-    setEditingSection(null)
-    setEditContent({ title: '', bullets: [''] })
+    // Trigger slide-out animation
+    setIsBottomSheetAnimating(false)
+    setTimeout(() => {
+      setIsBottomSheetVisible(false)
+      setEditingSection(null)
+      setEditContent({ title: '', bullets: [''] })
+    }, 300) // Match the animation duration
   }
 
   const handleDeleteBullet = (index: number) => {
@@ -92,8 +168,17 @@ export default function CoverLetterPage() {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     
     // Only allow left swipe (negative offset)
-    const offset = Math.min(0, clientX - dragStartX)
-    setDragOffset(Math.max(offset, -60)) // Reduced from -80 to -60
+    const newOffset = Math.min(0, clientX - dragStartX)
+    const clampedOffset = Math.max(newOffset, -60)
+    
+    // Use requestAnimationFrame for smooth updates
+    if (dragAnimationRef.current) {
+      cancelAnimationFrame(dragAnimationRef.current)
+    }
+    
+    dragAnimationRef.current = requestAnimationFrame(() => {
+      setDragOffset(clampedOffset)
+    })
   }
 
   const handleDragEnd = () => {
@@ -109,6 +194,10 @@ export default function CoverLetterPage() {
   }
 
   const resetDrag = () => {
+    if (dragAnimationRef.current) {
+      cancelAnimationFrame(dragAnimationRef.current)
+      dragAnimationRef.current = null
+    }
     setDragOffset(0)
     setDraggedBullet(null)
     setIsDragging(false)
@@ -139,7 +228,6 @@ export default function CoverLetterPage() {
   }
 
   const handleSectionEdit = (sectionKey: string, sectionTitle: string) => {
-    showFeedbackMessage(`Editing ${sectionTitle} section...`)
     handleEditSection(sectionKey)
   }
 
@@ -148,8 +236,6 @@ export default function CoverLetterPage() {
     e.stopPropagation()
     handleSectionEdit(sectionKey, sectionTitle)
   }
-
-
 
   useEffect(() => {
     let ticking = false
@@ -180,7 +266,16 @@ export default function CoverLetterPage() {
     }
   }, []) // Remove lastScrollY from dependencies to prevent re-initialization
 
-      return (
+  useEffect(() => {
+    // Cleanup animation frame on unmount
+    return () => {
+      if (dragAnimationRef.current) {
+        cancelAnimationFrame(dragAnimationRef.current)
+      }
+    }
+  }, [])
+
+  return (
     <div 
       className="cover-letter-page"
       onClick={(e) => {
@@ -210,24 +305,33 @@ export default function CoverLetterPage() {
       }}
     >
       {/* Bottom Sheet Editor */}
-      {editingSection && (
+      {isBottomSheetVisible && (
         <>
           {/* Background Overlay */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-60 z-[90]"
+            className="fixed inset-0 z-[90] transition-opacity duration-300"
             style={{ 
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
               backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)'
+              WebkitBackdropFilter: 'blur(8px)',
+              opacity: isBottomSheetAnimating ? 1 : 0
             }}
             onClick={handleCloseEditor}
           />
           
-                    {/* Bottom Sheet */}
+          {/* Bottom Sheet */}
           <div 
-            className="fixed bottom-0 left-0 right-0 bg-black z-[100] flex flex-col rounded-t-3xl shadow-2xl"
+            className="fixed bottom-0 left-0 right-0 z-[100] flex flex-col rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out"
             style={{ 
-              height: '85vh',
-              maxHeight: '85vh'
+              height: '90vh',
+              maxHeight: '90vh',
+              background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+              backgroundColor: 'rgba(0, 0, 0, 0.85)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderBottom: 'none',
+              transform: isBottomSheetAnimating ? 'translateY(0)' : 'translateY(100%)'
             }}
           >
             {/* Drag Handle */}
@@ -260,8 +364,8 @@ export default function CoverLetterPage() {
             </button>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col">
+                      {/* Main Content Area */}
+            <div className="flex-1 flex flex-col overflow-hidden">
             {/* Delete Confirmation Toast */}
             {showDeleteToast && (
               <div className="fixed bottom-20 left-4 right-4 z-10">
@@ -294,7 +398,7 @@ export default function CoverLetterPage() {
             )}
 
             {/* Bullet Points Section */}
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4 pb-20">
               <div className="space-y-4 py-2">
               {editContent.bullets.map((bullet, index) => (
                 <div 
@@ -309,7 +413,10 @@ export default function CoverLetterPage() {
                       backgroundColor: draggedBullet === index ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
                       borderRadius: draggedBullet === index ? '16px' : '0px',
                       padding: '12px 8px 8px 0px',
-                      transition: isDragging ? 'none' : 'transform 0.2s ease-out, background-color 0.2s ease-out, border-radius 0.2s ease-out'
+                      transition: isDragging 
+                        ? 'background-color 0.2s ease-out, border-radius 0.2s ease-out' 
+                        : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.2s ease-out, border-radius 0.2s ease-out',
+                      willChange: isDragging ? 'transform' : 'auto'
                     }}
                     onTouchStart={(e) => {
                       e.stopPropagation()
@@ -420,32 +527,39 @@ export default function CoverLetterPage() {
             </div>
           </div>
 
-          {/* Bottom Actions */}
-          <div className="p-4">
-            <button 
-              onClick={() => {
-                showFeedbackMessage('Changes saved successfully!')
-                // Save logic here
-                handleCloseEditor()
-              }}
-              className="w-full py-3 px-4 text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+            {/* Fixed Save Button */}
+            <div 
+              className="absolute bottom-0 left-0 right-0 p-4"
               style={{
-                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
-                borderRadius: '44.45px',
-                outline: '1px rgba(255, 255, 255, 0.10) solid',
-                outlineOffset: '-1px',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                background: 'linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 70%, transparent 100%)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)'
               }}
             >
-              Save Changes
-            </button>
-          </div>
+              <button 
+                onClick={() => {
+                  showFeedbackMessage('Changes saved successfully!')
+                  // Save logic here
+                  handleCloseEditor()
+                }}
+                className="w-full py-3 px-4 text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
+                  borderRadius: '44.45px',
+                  outline: '1px rgba(255, 255, 255, 0.10) solid',
+                  outlineOffset: '-1px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -745,15 +859,15 @@ export default function CoverLetterPage() {
             <ul className="w-full opacity-60 text-white text-base font-sans font-normal leading-6 break-words space-y-4">
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Featured speaker at UX Week 2023 and Design + Research Conference</span>
+                <span>Featured in Fast Company's "Most Creative People in Business" list for 2023</span>
               </li>
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Published research on mobile UX patterns in Journal of User Experience</span>
+                <span>Winner of UX Awards "Best Mobile App Design" for innovative fintech solutions</span>
               </li>
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Winner of Best Mobile App Design at TechCrunch Design Awards 2022</span>
+                <span>Speaker at 12+ international design conferences including Figma Config and Adobe MAX</span>
               </li>
             </ul>
           </div>
@@ -772,15 +886,15 @@ export default function CoverLetterPage() {
             <ul className="w-full opacity-60 text-white text-base font-sans font-normal leading-6 break-words space-y-4">
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Product strategy: Market research, competitive analysis, and roadmap planning</span>
+                <span>Collaborated with C-suite executives on product strategy and roadmap planning</span>
               </li>
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Business impact: Revenue optimization, conversion rate analysis, and growth metrics</span>
+                <span>Partnered with engineering teams to ensure 95% design-to-code accuracy</span>
               </li>
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Engineering collaboration: API design consultation and technical feasibility assessment</span>
+                <span>Worked with data science teams to implement ML-driven personalization features</span>
               </li>
             </ul>
           </div>
@@ -799,15 +913,15 @@ export default function CoverLetterPage() {
             <ul className="w-full opacity-60 text-white text-base font-sans font-normal leading-6 break-words space-y-4">
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Pioneered design-to-code automation reducing development time by 40%</span>
+                <span>Pioneered AI-assisted design workflows that reduced concept-to-prototype time by 70%</span>
               </li>
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Developed predictive UX models using machine learning for user behavior analysis</span>
+                <span>Established design research methodologies now used across 3 different companies</span>
               </li>
               <li className="flex items-start">
                 <span className="text-[#ffffff] mr-3">•</span>
-                <span>Created frameworks for rapid prototyping adopted across 3 different organizations</span>
+                <span>Led strategic initiatives that contributed to $50M+ in additional revenue</span>
               </li>
             </ul>
           </div>

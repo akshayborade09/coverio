@@ -8,6 +8,8 @@ interface DocumentData {
   name: string
   size: number
   type: string
+  file?: File
+  thumbnailUrl?: string
 }
 
 function ChatContent() {
@@ -17,14 +19,19 @@ function ChatContent() {
   
   const [inputValue, setInputValue] = useState("")
   const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean}>>([])
-  const [selectedDocument, setSelectedDocument] = useState<DocumentData | null>(null)
+  const [selectedDocuments, setSelectedDocuments] = useState<DocumentData[]>([])
   const [isAtMaxHeight, setIsAtMaxHeight] = useState(false)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [previousHeight, setPreviousHeight] = useState<string>("24px")
   const [wasAtMaxHeight, setWasAtMaxHeight] = useState(false)
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
+  const [showErrorToast, setShowErrorToast] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
   
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const chatInputRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Check if coming from document upload
@@ -33,7 +40,7 @@ function ChatContent() {
       if (docData) {
         try {
           const parsedDoc = JSON.parse(docData)
-          setSelectedDocument(parsedDoc)
+          setSelectedDocuments([parsedDoc])
           // Clear from localStorage after loading
           localStorage.removeItem('selectedDocument')
         } catch (error) {
@@ -42,12 +49,50 @@ function ChatContent() {
       }
     }
     
-    // Auto-focus on textarea when coming from "Write about you"
-    if (fromSource === 'write' && textareaRef.current) {
+    // Auto-focus and scroll for mobile keyboards
+    const focusAndScroll = () => {
+      if (textareaRef.current) {
+        textareaRef.current.focus()
+        
+        // Mobile keyboard detection and adjustment
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        
+        if (isMobile) {
+          // Detect keyboard visibility with viewport height changes
+          const originalHeight = window.innerHeight
+          
+          const handleResize = () => {
+            const currentHeight = window.innerHeight
+            const heightDifference = originalHeight - currentHeight
+            
+            if (heightDifference > 150) { // Keyboard is likely visible
+              setIsKeyboardVisible(true)
+              // Scroll input into view above keyboard
+              setTimeout(() => {
+                chatInputRef.current?.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'end' 
+                })
+              }, 100)
+            } else {
+              setIsKeyboardVisible(false)
+            }
+          }
+          
+          window.addEventListener('resize', handleResize)
+          
+          // Cleanup
+          return () => {
+            window.removeEventListener('resize', handleResize)
+          }
+        }
+      }
+    }
+    
+    // Auto-focus when coming from "Write about you" or "Portfolio URL"
+    if ((fromSource === 'write' || fromSource === 'portfolio') && textareaRef.current) {
       // Small delay to ensure component is fully mounted
-      setTimeout(() => {
-        textareaRef.current?.focus()
-      }, 100)
+      setTimeout(focusAndScroll, 300)
     }
   }, [fromSource])
 
@@ -56,31 +101,70 @@ function ChatContent() {
   }
 
   const handleAttach = () => {
+    // Check if already at limit before opening file picker
+    if (selectedDocuments.length >= 3) {
+      setErrorMessage('Only 3 attachments allowed')
+      setShowErrorToast(true)
+      setTimeout(() => setShowErrorToast(false), 2000)
+      return
+    }
     fileInputRef.current?.click()
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedDocument({
-        name: file.name,
-        size: file.size,
-        type: file.type
+    const files = event.target.files
+    if (files) {
+      const newFiles = Array.from(files)
+      
+      // Check if adding these files would exceed the limit
+      if (selectedDocuments.length + newFiles.length > 3) {
+        setErrorMessage('Only 3 attachments allowed')
+        setShowErrorToast(true)
+        setTimeout(() => setShowErrorToast(false), 2000)
+        return
+      }
+      
+      // Process each file
+      newFiles.forEach(file => {
+        // Create thumbnail for image files
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            const newDoc = {
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              file: file,
+              thumbnailUrl: e.target?.result as string
+            }
+            setSelectedDocuments(prev => [...prev, newDoc])
+          }
+          reader.readAsDataURL(file)
+        } else {
+          // For non-image files (PDF, DOC, etc.)
+          const newDoc = {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            file: file
+          }
+          setSelectedDocuments(prev => [...prev, newDoc])
+        }
       })
       
       // Focus on text input after document upload
       setTimeout(() => {
         textareaRef.current?.focus()
-      }, 100)
+      }, 200)
     }
   }
 
-  const handleRemoveDocument = () => {
-    setSelectedDocument(null)
+  const handleRemoveDocument = (index: number) => {
+    setSelectedDocuments(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleSend = () => {
-    if (inputValue.trim() || selectedDocument) {
+    if (inputValue.trim() || selectedDocuments.length > 0) {
       const newMessage = {
         id: Date.now().toString(),
         content: inputValue.trim(),
@@ -88,10 +172,11 @@ function ChatContent() {
       }
       setMessages(prev => [...prev, newMessage])
       setInputValue("")
+      setIsTyping(false)
       
-      // Remove document after sending
-      if (selectedDocument) {
-        setSelectedDocument(null)
+      // Remove documents after sending
+      if (selectedDocuments.length > 0) {
+        setSelectedDocuments([])
       }
     }
   }
@@ -122,6 +207,74 @@ function ChatContent() {
     return 'file'
   }
 
+  const renderDocumentThumbnail = (document: DocumentData) => {
+    // For images, show the actual image thumbnail
+    if (document.type.startsWith('image/') && document.thumbnailUrl) {
+      return (
+        <img
+          src={document.thumbnailUrl}
+          alt={document.name}
+          className="w-full h-full object-cover rounded-lg"
+          style={{
+            width: '72px',
+            height: '72px',
+            objectFit: 'cover'
+          }}
+        />
+      )
+    }
+
+    // For PDF files, show PDF thumbnail
+    if (document.type.includes('pdf')) {
+      return (
+        <div 
+          className="w-full h-full rounded-lg flex items-center justify-center text-white"
+          style={{
+            width: '72px',
+            height: '72px',
+            backgroundColor: '#FF3B3B'
+          }}
+        >
+          <div className="text-lg font-bold">PDF</div>
+        </div>
+      )
+    }
+
+    // For DOC files, show DOC thumbnail
+    if (document.type.includes('doc') || document.type.includes('word')) {
+      return (
+        <div 
+          className="w-full h-full rounded-lg flex items-center justify-center text-white"
+          style={{
+            width: '72px',
+            height: '72px',
+            backgroundColor: '#3BADFF'
+          }}
+        >
+          <div className="text-lg font-bold">DOC</div>
+        </div>
+      )
+    }
+
+    // Default file thumbnail
+    return (
+      <div 
+        className="w-full h-full rounded-lg flex flex-col items-center justify-center text-white bg-gray-600"
+        style={{
+          width: '72px',
+          height: '72px'
+        }}
+      >
+        <CustomIcon name="file" size={24} className="mb-1" />
+        <div className="text-xs opacity-80 text-center px-1 leading-tight">
+          {document.name.length > 8 
+            ? document.name.substring(0, 8) + '..' 
+            : document.name}
+        </div>
+      </div>
+    )
+  }
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -145,9 +298,55 @@ function ChatContent() {
             </button>
           </div>
           
+          {/* Document Preview at top - Full size */}
+          {selectedDocuments.length > 0 && (
+            <div className="px-4 mb-4">
+              <div className="flex gap-3 flex-wrap">
+                {selectedDocuments.map((document, index) => (
+                  <div key={index} className="relative inline-block">
+                    <div 
+                      className="relative overflow-hidden rounded-xl"
+                      style={{ 
+                        width: '72px', 
+                        height: '72px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                    >
+                      {renderDocumentThumbnail(document)}
+                      
+                      {/* Cancel button */}
+                      <div 
+                        className="absolute top-0 right-0"
+                        style={{ 
+                          zIndex: 10,
+                          padding: '4px'
+                        }}
+                      >
+                        <button
+                          onClick={() => handleRemoveDocument(index)}
+                          className="flex items-center justify-center"
+                        >
+                          <CustomIcon name="cancel-attach" size={16} className="text-white" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* File info below thumbnail */}
+                    <div className="mt-2 max-w-[72px]">
+                      <div className="text-xs text-white opacity-60 text-center leading-tight truncate">
+                        {document.name}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {/* Expandable textarea area */}
           <div className="flex-1 px-4 mb-3">
             <textarea
+              ref={textareaRef}
               placeholder={
                 fromSource === 'write' 
                   ? "Write something about yourself" 
@@ -157,7 +356,11 @@ function ChatContent() {
               }
               className="bg-transparent border-none outline-none w-full h-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value)
+                // Update typing state based on input content
+                setIsTyping(e.target.value.trim().length > 0)
+              }}
             />
           </div>
           
@@ -165,7 +368,8 @@ function ChatContent() {
           <div className="flex justify-between gap-2 px-4 pb-4">
             <button 
               onClick={handleAttach}
-              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+              disabled={selectedDocuments.length >= 3}
+              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -177,7 +381,8 @@ function ChatContent() {
             </button>
             <button 
               onClick={handleSend}
-              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+              disabled={!inputValue.trim() && selectedDocuments.length === 0}
+              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -202,6 +407,7 @@ function ChatContent() {
         accept=".pdf,.doc,.docx,.txt,image/*"
         onChange={handleFileSelect}
         className="hidden"
+        multiple
       />
       
       <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden">
@@ -248,38 +454,91 @@ function ChatContent() {
         </div>
 
         {/* Chat Input Area */}
-        <div className="p-4 border-t border-white/10">
-          <div className="bg-[#000000] outline outline-1 outline-offset-[-0.50px] outline-white/10 rounded-3xl p-4 w-full relative">
+        <div 
+          className="p-4 border-t border-white/10"
+          ref={chatInputRef}
+          style={{
+            // Adjust position when keyboard is visible on mobile
+            transform: isKeyboardVisible ? 'translateY(-20px)' : 'translateY(0)',
+            transition: 'transform 0.3s ease-out'
+          }}
+        >
+          <div 
+            className="rounded-3xl p-4 w-full relative"
+            style={{
+              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.08) 95%)',
+              boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+              outline: '1px rgba(255, 255, 255, 0.10) solid',
+              outlineOffset: '-1px',
+              backdropFilter: 'blur(10.67px)',
+            }}
+          >
             {/* Document Preview */}
-            {selectedDocument && (
-              <div className="mb-4">
-                <div className="relative inline-block">
-                  <div 
-                    className="w-24 h-24 bg-gray-800 rounded-lg flex flex-col items-center justify-center border border-white/10 relative"
-                    style={{ width: '100px', height: '100px' }}
-                  >
-                    <CustomIcon 
-                      name={getDocumentIcon(selectedDocument.type)} 
-                      size={32} 
-                      className="text-white opacity-60 mb-1" 
-                    />
-                    <span className="text-xs text-white opacity-60 text-center px-1 leading-tight">
-                      {selectedDocument.name.length > 12 
-                        ? selectedDocument.name.substring(0, 12) + '...' 
-                        : selectedDocument.name}
-                    </span>
-                    <span className="text-xs text-white opacity-40">
-                      {formatFileSize(selectedDocument.size)}
-                    </span>
-                    
-                    {/* Cancel button */}
-                    <button
-                      onClick={handleRemoveDocument}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs"
-                    >
-                      ×
-                    </button>
-                  </div>
+            {selectedDocuments.length > 0 && (
+              <div 
+                className="transition-all duration-300 overflow-hidden"
+                style={{
+                  marginBottom: isTyping ? '6px' : '16px',
+                  height: isTyping ? `${Math.ceil(72 * 0.4) + 8}px` : 'auto'
+                }}
+              >
+                <div 
+                  className="flex gap-3 flex-wrap transition-all duration-300 cursor-pointer"
+                  style={{
+                    transform: isTyping ? 'scale(0.4)' : 'scale(1)',
+                    transformOrigin: 'top left'
+                  }}
+                  onClick={() => {
+                    if (isTyping) {
+                      setIsTyping(false)
+                      textareaRef.current?.focus()
+                    }
+                  }}
+                >
+                  {selectedDocuments.map((document, index) => (
+                    <div key={index} className="relative inline-block">
+                      <div 
+                        className={`relative overflow-hidden ${isTyping ? 'rounded-full' : 'rounded-xl'} transition-all duration-300`}
+                        style={{ 
+                          width: '72px', 
+                          height: '72px',
+                          border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}
+                      >
+                        {renderDocumentThumbnail(document)}
+                        
+                        {/* Cancel button - only show when not typing */}
+                        {!isTyping && (
+                          <div 
+                            className="absolute top-0 right-0"
+                            style={{ 
+                              zIndex: 10,
+                              padding: '4px'
+                            }}
+                          >
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleRemoveDocument(index)
+                              }}
+                              className="flex items-center justify-center"
+                            >
+                              <CustomIcon name="cancel-attach" size={16} className="text-white" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* File info below thumbnail - hide when typing */}
+                                              {!isTyping && (
+                          <div className="mt-2 max-w-[72px]">
+                            <div className="text-xs text-white opacity-60 text-center leading-tight truncate">
+                            {document.name}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -297,7 +556,23 @@ function ChatContent() {
                 }
                 className="bg-transparent border-none outline-none w-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none overflow-hidden"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                  setInputValue(e.target.value)
+                  // Update typing state based on input content
+                  setIsTyping(e.target.value.trim().length > 0)
+                }}
+                onFocus={() => {
+                  // Additional mobile keyboard handling on focus
+                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                  if (isMobile) {
+                    setTimeout(() => {
+                      chatInputRef.current?.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'end' 
+                      })
+                    }, 300) // Delay for keyboard animation
+                  }
+                }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
                   target.style.height = 'auto';
@@ -338,7 +613,8 @@ function ChatContent() {
             <div className="flex justify-between gap-2">
               <button 
                 onClick={handleAttach}
-                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+                disabled={selectedDocuments.length >= 3}
+                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -350,7 +626,7 @@ function ChatContent() {
               </button>
               <button 
                 onClick={handleSend}
-                disabled={!inputValue.trim() && !selectedDocument}
+                disabled={!inputValue.trim() && selectedDocuments.length === 0}
                 className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
@@ -364,6 +640,22 @@ function ChatContent() {
             </div>
           </div>
         </div>
+
+        {/* Error Toast */}
+        {showErrorToast && (
+          <div 
+            className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40 px-6 py-3 rounded-2xl"
+            style={{
+              background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0px 4px 20px rgba(255, 107, 107, 0.3)'
+            }}
+          >
+            <div className="text-white text-sm font-medium">
+              {errorMessage}
+            </div>
+          </div>
+        )}
       </div>
     </>
   )
