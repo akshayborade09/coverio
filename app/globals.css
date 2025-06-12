@@ -53,6 +53,14 @@ body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+  /* Prevent elastic scrolling */
+  overscroll-behavior: contain;
+  /* Disable momentum scrolling globally */
+  -webkit-overflow-scrolling: auto;
+  /* Prevent viewport height changes */
+  position: relative;
+  height: auto;
+  min-height: 100vh;
 }
 
 @layer utilities {
@@ -60,8 +68,6 @@ body {
     text-wrap: balance;
   }
 }
-
-
 
 /* Cover Letter Page Specific Styles - Disable all touch scroll optimizations */
 .cover-letter-page {
@@ -75,12 +81,18 @@ body {
   overscroll-behavior: contain;
   /* Control touch actions strictly */
   touch-action: pan-y;
+  /* Prevent viewport adjustments */
+  height: auto;
+  min-height: 100vh;
 }
 
 /* Disable smooth scrolling to prevent touch-triggered gradual scrolling */
 .cover-letter-page .main-content {
   scroll-behavior: auto;
   -webkit-overflow-scrolling: auto;
+  /* Prevent automatic scroll behavior */
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 @media screen and (max-width: 768px) {
@@ -92,6 +104,9 @@ body {
     min-height: calc(100dvh + 200px);
     overflow-y: auto;
     -webkit-overflow-scrolling: auto;
+    /* Additional mobile fixes */
+    touch-action: pan-y;
+    overscroll-behavior: contain;
   }
   
   /* Reset body positioning only for cover letter page */
@@ -100,6 +115,20 @@ body {
     position: static;
     height: auto;
     min-height: calc(100vh + 200px);
+    /* Prevent iOS safari scroll bounce */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: auto;
+  }
+  
+  /* Prevent keyboard-triggered viewport changes */
+  .cover-letter-page textarea, 
+  .cover-letter-page input {
+    /* Disable auto-zoom on focus */
+    font-size: 16px !important;
+    /* Prevent scroll-into-view behavior */
+    scroll-margin: 0;
+    scroll-margin-top: 0;
+    scroll-margin-bottom: 0;
   }
 }
 

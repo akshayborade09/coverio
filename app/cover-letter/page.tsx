@@ -276,7 +276,17 @@ export default function CoverLetterPage() {
   }, [])
 
   return (
-    <div className="cover-letter-page">
+    <div 
+      className="cover-letter-page"
+      style={{
+        // Mobile scroll fixes
+        touchAction: 'pan-y',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
+        // Prevent automatic scroll adjustments
+        scrollBehavior: 'auto'
+      }}
+    >
       {/* Bottom Sheet Editor */}
       {isBottomSheetVisible && (
         <>
@@ -304,7 +314,10 @@ export default function CoverLetterPage() {
               WebkitBackdropFilter: 'blur(20px)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               borderBottom: 'none',
-              transform: isBottomSheetAnimating ? 'translateY(0)' : 'translateY(100%)'
+              transform: isBottomSheetAnimating ? 'translateY(0)' : 'translateY(100%)',
+              // Mobile scroll fixes
+              touchAction: 'none',
+              overscrollBehavior: 'contain'
             }}
           >
             {/* Fixed Header */}
@@ -314,8 +327,26 @@ export default function CoverLetterPage() {
                 <div className="w-10 h-1 bg-white bg-opacity-30 rounded-full" />
               </div>
               
-              {/* Close Button */}
-              <div className="flex justify-end px-4 pb-2">
+              {/* Header with Section Title and Close Button */}
+              <div className="flex items-center justify-between gap-4 px-4 pb-4">
+                <input 
+                  type="text"
+                  value={editContent.title}
+                  onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
+                  className="flex-1 bg-transparent text-white text-xl font-serif border-none outline-none opacity-80 placeholder-gray-400"
+                  placeholder="Section title"
+                  onFocus={(e) => {
+                    // Disable auto-scroll on focus for mobile
+                    if (typeof e.target.scrollIntoView === 'function') {
+                      e.target.scrollIntoView = () => {}
+                    }
+                  }}
+                  style={{
+                    // Prevent mobile zoom and scroll issues
+                    fontSize: '16px',
+                    touchAction: 'manipulation'
+                  }}
+                />
                 <button 
                   onClick={handleCloseEditor}
                   className="w-10 h-10 flex items-center justify-center flex-shrink-0"
@@ -334,18 +365,15 @@ export default function CoverLetterPage() {
             </div>
 
             {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto px-4">
-              {/* Title Input */}
-              <div className="mb-6">
-                <input 
-                  type="text"
-                  value={editContent.title}
-                  onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full bg-transparent text-white text-2xl font-serif border-none outline-none opacity-80 placeholder-gray-400"
-                  placeholder="Section title"
-                />
-              </div>
-
+            <div 
+              className="flex-1 overflow-y-auto px-4"
+              style={{
+                // Mobile scroll fixes
+                touchAction: 'pan-y',
+                overscrollBehavior: 'contain',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               {/* Delete Confirmation Toast */}
               {showDeleteToast && (
                 <div className="fixed bottom-20 left-4 right-4 z-10">
@@ -445,7 +473,10 @@ export default function CoverLetterPage() {
                           target.style.height = target.scrollHeight + 'px';
                         }}
                         onFocus={(e) => {
-                          e.target.scrollIntoView = () => {} // Disable auto-scroll on focus
+                          // Disable auto-scroll on focus for mobile
+                          if (typeof e.target.scrollIntoView === 'function') {
+                            e.target.scrollIntoView = () => {}
+                          }
                           resetDrag()
                           setIsInputFocused(true)
                         }}
