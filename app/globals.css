@@ -69,55 +69,30 @@ body {
   }
 }
 
-/* Cover Letter Page Specific Styles - Disable all touch scroll optimizations */
+/* Cover Letter Page Specific Styles - Simplified for smooth scrolling */
 .cover-letter-page {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
-  /* Disable all touch scroll optimizations that cause gradual scrolling */
-  scroll-behavior: auto !important;
-  -webkit-overflow-scrolling: auto !important;
-  /* Prevent momentum scrolling */
+  /* Simple, natural scrolling */
+  scroll-behavior: auto;
   overscroll-behavior: contain;
-  /* Control touch actions strictly */
   touch-action: pan-y;
-  /* Prevent viewport adjustments */
-  height: auto;
-  min-height: 100vh;
 }
 
-/* Disable smooth scrolling to prevent touch-triggered gradual scrolling */
+/* Simplified main content */
 .cover-letter-page .main-content {
   scroll-behavior: auto;
-  -webkit-overflow-scrolling: auto;
-  /* Prevent automatic scroll behavior */
   overscroll-behavior: contain;
-  touch-action: pan-y;
 }
 
 @media screen and (max-width: 768px) {
   .cover-letter-page {
-    /* Disable touch scrolling optimizations to prevent gradual scrolling */
-    position: static;
-    min-height: calc(100vh + 200px);
-    min-height: calc(100svh + 200px); 
-    min-height: calc(100dvh + 200px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: auto;
-    /* Additional mobile fixes */
+    /* Simplified mobile scrolling */
+    position: relative;
+    min-height: 100vh;
     touch-action: pan-y;
     overscroll-behavior: contain;
-  }
-  
-  /* Reset body positioning only for cover letter page */
-  .cover-letter-page ~ body,
-  body:has(.cover-letter-page) {
-    position: static;
-    height: auto;
-    min-height: calc(100vh + 200px);
-    /* Prevent iOS safari scroll bounce */
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: auto;
   }
   
   /* Prevent keyboard-triggered viewport changes */
@@ -129,23 +104,6 @@ body {
     scroll-margin: 0;
     scroll-margin-top: 0;
     scroll-margin-bottom: 0;
-  }
-  
-  /* Mobile keyboard support */
-  html {
-    /* Support for mobile viewport units */
-    height: 100%;
-    height: 100svh;
-    height: 100dvh;
-  }
-  
-  /* Bottom sheet keyboard avoidance */
-  .cover-letter-page [style*="bottom-0"] {
-    /* Use dynamic viewport height on mobile */
-    height: 100vh !important;
-    height: 100dvh !important;
-    max-height: 100vh !important;
-    max-height: 100dvh !important;
   }
 }
 

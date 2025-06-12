@@ -175,11 +175,10 @@ export default function CoverLetterPage() {
     <div 
       className="cover-letter-page"
       style={{
-        // Mobile scroll fixes
+        // Simplified scroll settings
         touchAction: 'pan-y',
         overscrollBehavior: 'contain',
-        WebkitOverflowScrolling: 'touch',
-        // Prevent automatic scroll adjustments
+        // Remove conflicting webkit settings
         scrollBehavior: 'auto'
       }}
     >

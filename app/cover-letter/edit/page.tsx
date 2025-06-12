@@ -245,7 +245,7 @@ function EditPageContent() {
       }}
     >
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-20" style={{ transform: 'translateZ(0)' }}>
+      <div className="fixed top-0 left-0 right-0 z-50 h-20" style={{ transform: 'translateZ(0)', paddingTop: 'env(safe-area-inset-top)' }}>
         {/* Progressive blur layer */}
         <div className="absolute inset-0 pointer-events-none">
           <div 
@@ -305,7 +305,7 @@ function EditPageContent() {
       </div>
 
       {/* Content Area */}
-      <div className="pt-20 px-4 pb-8">
+      <div className="px-4 pb-8" style={{ paddingTop: 'calc(80px + env(safe-area-inset-top))' }}>
         {/* Delete Confirmation Toast */}
         {showDeleteToast && (
           <div className="fixed bottom-20 left-4 right-4 z-10">
@@ -408,7 +408,7 @@ function EditPageContent() {
                           }
                         }, 0)
                       } else {
-                        // Second deletion: Actually remove the bullet and focus previous
+                        // Second deletion: Actually remove the bullet and focus on last bullet
                         newBullets.splice(index, 1)
                         if (draggedBullet === index) {
                           resetDrag()
@@ -416,8 +416,8 @@ function EditPageContent() {
                         setEditContent(prev => ({ ...prev, bullets: newBullets }))
                         showFeedbackMessage('Bullet point removed')
                         
-                        // Focus on the previous bullet
-                        const focusIndex = index > 0 ? index - 1 : 0
+                        // Focus on the last bullet point
+                        const focusIndex = newBullets.length - 1
                         setTimeout(() => {
                           if (bulletRefs.current[focusIndex]) {
                             bulletRefs.current[focusIndex]?.focus()
@@ -462,8 +462,8 @@ function EditPageContent() {
                       setEditContent(prev => ({ ...prev, bullets: newBullets }))
                       showFeedbackMessage('Bullet point removed')
                       
-                      // Focus on the previous bullet
-                      const focusIndex = index > 0 ? index - 1 : 0
+                      // Focus on the last bullet point
+                      const focusIndex = newBullets.length - 1
                       setTimeout(() => {
                         if (bulletRefs.current[focusIndex]) {
                           bulletRefs.current[focusIndex]?.focus()
