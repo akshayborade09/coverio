@@ -69,30 +69,16 @@ body {
   }
 }
 
-/* Cover Letter Page Specific Styles - Simplified for smooth scrolling */
+/* Cover Letter Page Specific Styles - Minimal for natural scrolling */
 .cover-letter-page {
   position: relative;
   min-height: 100vh;
-  overflow-x: hidden;
-  /* Simple, natural scrolling */
-  scroll-behavior: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-}
-
-/* Simplified main content */
-.cover-letter-page .main-content {
-  scroll-behavior: auto;
-  overscroll-behavior: contain;
 }
 
 @media screen and (max-width: 768px) {
   .cover-letter-page {
-    /* Simplified mobile scrolling */
     position: relative;
     min-height: 100vh;
-    touch-action: pan-y;
-    overscroll-behavior: contain;
   }
   
   /* Prevent keyboard-triggered viewport changes */
@@ -100,10 +86,6 @@ body {
   .cover-letter-page input {
     /* Disable auto-zoom on focus */
     font-size: 16px !important;
-    /* Prevent scroll-into-view behavior */
-    scroll-margin: 0;
-    scroll-margin-top: 0;
-    scroll-margin-bottom: 0;
   }
 }
 

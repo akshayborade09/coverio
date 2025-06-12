@@ -245,7 +245,7 @@ function EditPageContent() {
       }}
     >
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-20" style={{ transform: 'translateZ(0)', paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="fixed top-0 left-0 right-0 z-50" style={{ transform: 'translateZ(0)', paddingTop: 'env(safe-area-inset-top)', minHeight: '80px' }}>
         {/* Progressive blur layer */}
         <div className="absolute inset-0 pointer-events-none">
           <div 
@@ -258,7 +258,7 @@ function EditPageContent() {
             }}
           ></div>
         </div>
-        <div className="flex items-center justify-between gap-3 px-4 py-4 relative z-10 h-full">
+        <div className="flex items-center justify-between gap-3 px-4 py-4 relative z-10" style={{ minHeight: '80px' }}>
           <input 
             type="text"
             value={editContent.title}

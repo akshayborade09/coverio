@@ -1,17 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
 import { useFullscreen } from "@/hooks/useFullscreen"
 
 export default function CoverLetterPage() {
   const { isScrolling } = useFullscreen()
-  const [isNavVisible, setIsNavVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null)
-  const [isUserScrolling, setIsUserScrolling] = useState(false)
-
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
 
@@ -132,56 +127,8 @@ export default function CoverLetterPage() {
     handleEditSection(sectionKey)
   }
 
-  // Scroll handling and mobile optimizations
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isScrolling) return
-      
-      const currentScrollY = window.scrollY
-      const direction = currentScrollY > lastScrollY ? 'down' : 'up'
-      
-      setIsUserScrolling(true)
-      
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout)
-      }
-      
-      const newTimeout = setTimeout(() => {
-        setIsUserScrolling(false)
-      }, 150)
-      setScrollTimeout(newTimeout)
-      
-      if (Math.abs(currentScrollY - lastScrollY) > 5) {
-        if (direction === 'down' && currentScrollY > 100 && !isUserScrolling) {
-          setIsNavVisible(false)
-        } else if (direction === 'up' || currentScrollY <= 100) {
-          setIsNavVisible(true)
-        }
-      }
-      
-      setLastScrollY(currentScrollY)
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout)
-      }
-    }
-  }, [lastScrollY, isScrolling, scrollTimeout, isUserScrolling])
-
   return (
-    <div 
-      className="cover-letter-page"
-      style={{
-        // Simplified scroll settings
-        touchAction: 'pan-y',
-        overscrollBehavior: 'contain',
-        // Remove conflicting webkit settings
-        scrollBehavior: 'auto'
-      }}
-    >
+    <div className="cover-letter-page">
       <div className="text-[#ffffff] relative">
         {/* Header - Fixed with Progressive Blur */}
         <div className="fixed top-0 left-0 right-0 z-50 h-20" style={{ transform: 'translateZ(0)' }}>
@@ -496,6 +443,9 @@ export default function CoverLetterPage() {
           </div>
         )}
       </div>
+      
+      {/* Bottom Navigation */}
+      <BottomNavigation />
     </div>
   )
 }
