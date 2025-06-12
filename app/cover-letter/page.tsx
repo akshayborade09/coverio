@@ -26,6 +26,7 @@ export default function CoverLetterPage() {
 
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
+  const [viewportHeight, setViewportHeight] = useState(0)
 
   // Section data
   const sections = {
@@ -275,6 +276,39 @@ export default function CoverLetterPage() {
     }
   }, [])
 
+  // Handle viewport height changes for mobile keyboards
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      // Use visualViewport if available (mobile browsers)
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height)
+      } else {
+        // Fallback for desktop or browsers without visualViewport
+        setViewportHeight(window.innerHeight)
+      }
+    }
+
+    // Initial set
+    updateViewportHeight()
+
+    // Listen for viewport changes (keyboard open/close)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateViewportHeight)
+      window.visualViewport.addEventListener('scroll', updateViewportHeight)
+    } else {
+      window.addEventListener('resize', updateViewportHeight)
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateViewportHeight)
+        window.visualViewport.removeEventListener('scroll', updateViewportHeight)
+      } else {
+        window.removeEventListener('resize', updateViewportHeight)
+      }
+    }
+  }, [])
+
   return (
     <div 
       className="cover-letter-page"
@@ -306,8 +340,8 @@ export default function CoverLetterPage() {
           <div 
             className="fixed bottom-0 left-0 right-0 z-[100] flex flex-col rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out"
             style={{ 
-              height: '90vh',
-              maxHeight: '90vh',
+              height: viewportHeight > 0 ? `${viewportHeight}px` : '100vh',
+              maxHeight: viewportHeight > 0 ? `${viewportHeight}px` : '100vh',
               background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
               backgroundColor: 'rgba(0, 0, 0, 0.85)',
               backdropFilter: 'blur(20px)',
@@ -327,8 +361,8 @@ export default function CoverLetterPage() {
                 <div className="w-10 h-1 bg-white bg-opacity-30 rounded-full" />
               </div>
               
-              {/* Header with Section Title and Close Button */}
-              <div className="flex items-center justify-between gap-4 px-4 pb-4">
+              {/* Header with Section Title, Save Button, and Close Button */}
+              <div className="flex items-center justify-between gap-3 px-4 pb-4">
                 <input 
                   type="text"
                   value={editContent.title}
@@ -347,6 +381,33 @@ export default function CoverLetterPage() {
                     touchAction: 'manipulation'
                   }}
                 />
+                
+                {/* Save Button */}
+                <button 
+                  onClick={() => {
+                    showFeedbackMessage('Changes saved successfully!')
+                    // Save logic here
+                    handleCloseEditor()
+                  }}
+                  className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
+                  style={{
+                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
+                    borderRadius: '44.45px',
+                    outline: '1px rgba(255, 255, 255, 0.10) solid',
+                    outlineOffset: '-1px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                  }}
+                >
+                  <CustomIcon name="check" size={18} className="text-[#ffffff]" />
+                </button>
+                
+                {/* Close Button */}
                 <button 
                   onClick={handleCloseEditor}
                   className="w-10 h-10 flex items-center justify-center flex-shrink-0"
@@ -540,33 +601,6 @@ export default function CoverLetterPage() {
                   >
                     <CustomIcon name="plus" size={16} />
                     <span>Add bullet point</span>
-                  </button>
-                </div>
-                
-                {/* Save Button */}
-                <div className="pt-8 pb-4">
-                  <button 
-                    onClick={() => {
-                      showFeedbackMessage('Changes saved successfully!')
-                      // Save logic here
-                      handleCloseEditor()
-                    }}
-                    className="w-full py-3 px-4 text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95"
-                    style={{
-                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                      boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
-                      borderRadius: '44.45px',
-                      outline: '1px rgba(255, 255, 255, 0.10) solid',
-                      outlineOffset: '-1px',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                    }}
-                  >
-                    Save Changes
                   </button>
                 </div>
               </div>
