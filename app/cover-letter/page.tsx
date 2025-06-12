@@ -276,34 +276,7 @@ export default function CoverLetterPage() {
   }, [])
 
   return (
-    <div 
-      className="cover-letter-page"
-      onClick={(e) => {
-        // Prevent any click events from triggering scroll behavior
-        e.stopPropagation()
-      }}
-      onTouchStart={(e) => {
-        // Prevent touch events from triggering scroll adjustments
-        e.stopPropagation()
-      }}
-      onTouchMove={(e) => {
-        // Allow natural scroll but prevent event bubbling
-        e.stopPropagation()
-      }}
-      onTouchEnd={(e) => {
-        // Prevent touch end from triggering scroll adjustments
-        e.stopPropagation()
-      }}
-      style={{
-        // Disable touch-action to prevent browser scroll optimizations
-        touchAction: 'pan-y',
-        // Prevent text selection that might trigger scroll
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        // Disable tap highlight
-        WebkitTapHighlightColor: 'transparent'
-      }}
-    >
+    <div className="cover-letter-page">
       {/* Bottom Sheet Editor */}
       {isBottomSheetVisible && (
         <>
@@ -334,177 +307,192 @@ export default function CoverLetterPage() {
               transform: isBottomSheetAnimating ? 'translateY(0)' : 'translateY(100%)'
             }}
           >
-            {/* Drag Handle */}
-            <div className="flex justify-center py-3">
-              <div className="w-10 h-1 bg-white bg-opacity-30 rounded-full" />
-            </div>
-            
-            {/* Header with Editable Title and Close Button */}
-            <div className="flex items-center justify-between gap-4 px-4 pb-4">
-            <input 
-              type="text"
-              value={editContent.title}
-              onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
-              className="flex-1 bg-transparent text-white text-2xl font-serif border-none outline-none opacity-80 placeholder-gray-400"
-              placeholder="Section title"
-            />
-            <button 
-              onClick={handleCloseEditor}
-              className="w-10 h-10 flex items-center justify-center flex-shrink-0"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                outline: '1px rgba(255, 255, 255, 0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-            >
-              <CustomIcon name="close" size={20} className="text-[#ffffff]" />
-            </button>
-          </div>
-
-                      {/* Main Content Area */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Delete Confirmation Toast */}
-            {showDeleteToast && (
-              <div className="fixed bottom-20 left-4 right-4 z-10">
-                <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl"
+            {/* Fixed Header */}
+            <div className="flex-shrink-0">
+              {/* Drag Handle */}
+              <div className="flex justify-center py-3">
+                <div className="w-10 h-1 bg-white bg-opacity-30 rounded-full" />
+              </div>
+              
+              {/* Close Button */}
+              <div className="flex justify-end px-4 pb-2">
+                <button 
+                  onClick={handleCloseEditor}
+                  className="w-10 h-10 flex items-center justify-center flex-shrink-0"
                   style={{
                     background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                     boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                    borderRadius: '44.45px',
                     outline: '1px rgba(255, 255, 255, 0.10) solid',
                     outlineOffset: '-1px',
                     backdropFilter: 'blur(10.67px)',
                   }}
                 >
-                  <span className="text-white text-sm font-medium flex-1">Delete the bullet point?</span>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={confirmDeleteBullet}
-                      className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full transition-colors"
-                    >
-                      Confirm
-                    </button>
-                    <button 
-                      onClick={cancelDeleteBullet}
-                      className="w-6 h-6 flex items-center justify-center text-white opacity-70 hover:opacity-100 transition-opacity"
-                    >
-                      <CustomIcon name="close" size={14} />
-                    </button>
-                  </div>
-                </div>
+                  <CustomIcon name="close" size={20} className="text-[#ffffff]" />
+                </button>
               </div>
-            )}
+            </div>
 
-            {/* Bullet Points Section */}
-            <div className="flex-1 overflow-y-auto px-4 pb-20">
-              <div className="space-y-4 py-2">
-              {editContent.bullets.map((bullet, index) => (
-                <div 
-                  key={index} 
-                  className="relative"
-                >
-                  {/* Main Bullet Content */}
-                  <div 
-                    className="flex items-start"
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto px-4">
+              {/* Title Input */}
+              <div className="mb-6">
+                <input 
+                  type="text"
+                  value={editContent.title}
+                  onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-transparent text-white text-2xl font-serif border-none outline-none opacity-80 placeholder-gray-400"
+                  placeholder="Section title"
+                />
+              </div>
+
+              {/* Delete Confirmation Toast */}
+              {showDeleteToast && (
+                <div className="fixed bottom-20 left-4 right-4 z-10">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl"
                     style={{
-                      transform: draggedBullet === index ? `translateX(${dragOffset}px)` : 'translateX(0px)',
-                      backgroundColor: draggedBullet === index ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                      borderRadius: draggedBullet === index ? '16px' : '0px',
-                      padding: '12px 8px 8px 0px',
-                      transition: isDragging 
-                        ? 'background-color 0.2s ease-out, border-radius 0.2s ease-out' 
-                        : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.2s ease-out, border-radius 0.2s ease-out',
-                      willChange: isDragging ? 'transform' : 'auto'
+                      background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                      boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                      outline: '1px rgba(255, 255, 255, 0.10) solid',
+                      outlineOffset: '-1px',
+                      backdropFilter: 'blur(10.67px)',
                     }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation()
-                      handleDragStart(e, index)
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation()
-                      handleDragStart(e, index)
-                    }}
-                    onTouchMove={(e) => {
-                      e.stopPropagation()
-                      handleDragMove(e)
-                    }}
-                    onMouseMove={isDragging ? (e) => {
-                      e.stopPropagation()
-                      handleDragMove(e)
-                    } : undefined}
-                    onTouchEnd={(e) => {
-                      e.stopPropagation()
-                      handleDragEnd()
-                    }}
-                    onMouseUp={(e) => {
-                      e.stopPropagation()
-                      handleDragEnd()
-                    }}
-                    onMouseLeave={handleDragEnd}
                   >
-
-
-                    <textarea
-                      value={bullet}
-                      onChange={(e) => {
-                        const newValue = e.target.value
-                        const newBullets = [...editContent.bullets]
-                        
-                        if (newValue === '' && editContent.bullets.length > 1) {
-                          // Remove the bullet if it's empty and there are multiple bullets
-                          newBullets.splice(index, 1)
-                        } else {
-                          // Update the bullet content
-                          newBullets[index] = newValue
-                        }
-                        
-                        setEditContent(prev => ({ ...prev, bullets: newBullets }))
-                      }}
-                      onFocus={(e) => {
-                        e.target.scrollIntoView = () => {} // Disable auto-scroll on focus
-                        resetDrag()
-                        setIsInputFocused(true)
-                      }}
-                      onBlur={() => setIsInputFocused(false)}
-                      className="flex-1 bg-transparent text-white text-lg font-sans border-none outline-none opacity-80 placeholder-gray-500"
-                      placeholder="Bullet point..."
-                      style={{
-                        resize: 'none',
-                        overflow: 'hidden',
-                        height: 'auto',
-                        minHeight: 'auto'
-                      }}
-                      onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = 'auto';
-                        target.style.height = target.scrollHeight + 'px';
-                      }}
-                    />
-                  </div>
-
-                  {/* Delete Button - Hidden by default, scales in smoothly */}
-                  {editContent.bullets.length > 1 && draggedBullet === index && (
-                    <div 
-                      className="absolute right-0 w-12 h-12 flex items-center justify-center bg-red-500 rounded-full shadow-lg"
-                      style={{
-                        top: '8px', // Align with bullet point position (8px padding + bullet alignment)
-                        transform: isDragging ? 'scale(0)' : 'scale(1)',
-                        transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                      }}
-                    >
+                    <span className="text-white text-sm font-medium flex-1">Delete the bullet point?</span>
+                    <div className="flex items-center gap-2">
                       <button 
-                        onClick={() => handleDeleteBullet(index)}
-                        className="w-full h-full flex items-center justify-center text-white"
+                        onClick={confirmDeleteBullet}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full transition-colors"
                       >
-                        <CustomIcon name="trash" size={20} />
+                        Confirm
+                      </button>
+                      <button 
+                        onClick={cancelDeleteBullet}
+                        className="w-6 h-6 flex items-center justify-center text-white opacity-70 hover:opacity-100 transition-opacity"
+                      >
+                        <CustomIcon name="close" size={14} />
                       </button>
                     </div>
-                  )}
+                  </div>
                 </div>
-              ))}
-              
+              )}
+
+              {/* Bullet Points Section */}
+              <div className="space-y-4 py-2">
+                {editContent.bullets.map((bullet, index) => (
+                  <div 
+                    key={index} 
+                    className="relative"
+                  >
+                    {/* Main Bullet Content */}
+                    <div 
+                      className="flex items-start"
+                      style={{
+                        transform: draggedBullet === index ? `translateX(${dragOffset}px)` : 'translateX(0px)',
+                        backgroundColor: (draggedBullet === index && dragOffset !== 0) ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                        borderRadius: (draggedBullet === index && dragOffset !== 0) ? '16px' : '0px',
+                        padding: '12px 8px 8px 0px',
+                        transition: isDragging 
+                          ? 'background-color 0.2s ease-out, border-radius 0.2s ease-out' 
+                          : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.2s ease-out, border-radius 0.2s ease-out',
+                        willChange: isDragging ? 'transform' : 'auto'
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation()
+                        handleDragStart(e, index)
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation()
+                        handleDragStart(e, index)
+                      }}
+                      onTouchMove={(e) => {
+                        e.stopPropagation()
+                        handleDragMove(e)
+                      }}
+                      onMouseMove={isDragging ? (e) => {
+                        e.stopPropagation()
+                        handleDragMove(e)
+                      } : undefined}
+                      onTouchEnd={(e) => {
+                        e.stopPropagation()
+                        handleDragEnd()
+                      }}
+                      onMouseUp={(e) => {
+                        e.stopPropagation()
+                        handleDragEnd()
+                      }}
+                      onMouseLeave={handleDragEnd}
+                    >
+                      <textarea
+                        value={bullet}
+                        onChange={(e) => {
+                          const newValue = e.target.value
+                          const newBullets = [...editContent.bullets]
+                          
+                          if (newValue === '' && editContent.bullets.length > 1) {
+                            // Remove the bullet if it's empty and there are multiple bullets
+                            newBullets.splice(index, 1)
+                          } else {
+                            // Update the bullet content
+                            newBullets[index] = newValue
+                          }
+                          
+                          setEditContent(prev => ({ ...prev, bullets: newBullets }))
+                          
+                          // Auto-resize on content change
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = 'auto';
+                          target.style.height = target.scrollHeight + 'px';
+                        }}
+                        onFocus={(e) => {
+                          e.target.scrollIntoView = () => {} // Disable auto-scroll on focus
+                          resetDrag()
+                          setIsInputFocused(true)
+                        }}
+                        onBlur={() => setIsInputFocused(false)}
+                        className="flex-1 bg-transparent text-white text-md font-sans border-none outline-none opacity-60 placeholder-gray-500 leading-relaxed"
+                        placeholder="Bullet point..."
+                        rows={1}
+                        style={{
+                          resize: 'none',
+                          overflow: 'hidden',
+                          height: 'auto',
+                          minHeight: '24px',
+                          lineHeight: '1.6',
+                          wordWrap: 'break-word',
+                          whiteSpace: 'pre-wrap'
+                        }}
+                        ref={(el) => {
+                          if (el) {
+                            // Auto-resize on render
+                            el.style.height = 'auto';
+                            el.style.height = el.scrollHeight + 'px';
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* Delete Button - Hidden by default, scales in smoothly */}
+                    {editContent.bullets.length > 1 && draggedBullet === index && (
+                      <div 
+                        className="absolute right-0 w-12 h-12 flex items-center justify-center bg-red-500 rounded-full shadow-lg"
+                        style={{
+                          top: '8px', // Align with bullet point position (8px padding + bullet alignment)
+                          transform: isDragging ? 'scale(0)' : 'scale(1)',
+                          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                      >
+                        <button 
+                          onClick={() => handleDeleteBullet(index)}
+                          className="w-full h-full flex items-center justify-center text-white"
+                        >
+                          <CustomIcon name="trash" size={20} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
                 {/* Add Bullet Button */}
                 <div className="pt-4">
                   <button 
@@ -523,42 +511,34 @@ export default function CoverLetterPage() {
                     <span>Add bullet point</span>
                   </button>
                 </div>
+                
+                {/* Save Button */}
+                <div className="pt-8 pb-4">
+                  <button 
+                    onClick={() => {
+                      showFeedbackMessage('Changes saved successfully!')
+                      // Save logic here
+                      handleCloseEditor()
+                    }}
+                    className="w-full py-3 px-4 text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                    style={{
+                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
+                      borderRadius: '44.45px',
+                      outline: '1px rgba(255, 255, 255, 0.10) solid',
+                      outlineOffset: '-1px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                    }}
+                  >
+                    Save Changes
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-
-            {/* Fixed Save Button */}
-            <div 
-              className="absolute bottom-0 left-0 right-0 p-4"
-              style={{
-                background: 'linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 70%, transparent 100%)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)'
-              }}
-            >
-              <button 
-                onClick={() => {
-                  showFeedbackMessage('Changes saved successfully!')
-                  // Save logic here
-                  handleCloseEditor()
-                }}
-                className="w-full py-3 px-4 text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{
-                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                  boxShadow: '0px 4px 16px rgba(34, 197, 94, 0.3)',
-                  borderRadius: '44.45px',
-                  outline: '1px rgba(255, 255, 255, 0.10) solid',
-                  outlineOffset: '-1px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                }}
-              >
-                Save Changes
-              </button>
             </div>
           </div>
         </>
