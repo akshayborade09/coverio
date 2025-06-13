@@ -1,4 +1,3 @@
-import openparse from 'openparse';
 import { FreeVectorStore } from './free-vector-store';
 import * as cheerio from 'cheerio';
 import puppeteer from 'puppeteer';

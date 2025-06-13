@@ -18,6 +18,7 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react';
+import { DocumentParser } from '@/lib/openparse-stub';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
