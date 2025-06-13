@@ -90,7 +90,7 @@ export default function CoverIoApp() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32">
-          <h1 className="text-5xl font-serif">Cover.io</h1>
+          <h1 className="text-5xl" style={{fontFamily:'"Playfair Display", serif'}}>Cover.io</h1>
 
           <div className="w-full max-w-md flex flex-col gap-4 mt-4 items-center">
             {/* Two buttons side by side */}

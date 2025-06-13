@@ -1,9 +1,3 @@
-import path, { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -14,19 +8,6 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    disableStaticImages: true,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    remotePatterns: []
-  },
-  webpack(config) {
-    config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...(config.resolve.alias || {}),
-      chromadb: path.resolve(__dirname, 'lib/chromadb-stub.ts'),
-      sharp: path.resolve(__dirname, 'lib/sharp-stub.js')
-    };
-    return config;
   },
 }
 
