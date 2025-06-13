@@ -302,7 +302,7 @@ function EditPageContent() {
         {/* Delete Confirmation Toast */}
         {showDeleteToast && (
           <div className="fixed bottom-20 left-4 right-4 z-10">
-            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl"
+            <div className="flex items-center justify-between gap-3 px-3 py-3 rounded-full"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -315,13 +315,17 @@ function EditPageContent() {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={confirmDeleteBullet}
-                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full transition-colors"
+                  className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full transition-colors"
                 >
                   Confirm
                 </button>
                 <button 
                   onClick={cancelDeleteBullet}
-                  className="w-6 h-6 flex items-center justify-center text-white opacity-70 hover:opacity-100 transition-opacity"
+                  className="w-8 h-8 flex items-center justify-center text-white opacity-70 hover:opacity-100 transition-opacity"
+                  style={{
+                    background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                    borderRadius: '20px',
+                  }}
                 >
                   <CustomIcon name="close" size={14} />
                 </button>

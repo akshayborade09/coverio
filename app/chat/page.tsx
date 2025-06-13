@@ -16,7 +16,8 @@ interface DocumentData {
 function ChatContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const fromSource = searchParams.get('from') // 'write' or 'document'
+  const fromSource = searchParams?.get('from') // 'write' or 'document'
+  const topic = searchParams?.get('topic')
   
   const [inputValue, setInputValue] = useState("")
   const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean}>>([])
@@ -42,58 +43,54 @@ function ChatContent() {
         try {
           const parsedDoc = JSON.parse(docData)
           setSelectedDocuments([parsedDoc])
-          // Clear from localStorage after loading
           localStorage.removeItem('selectedDocument')
         } catch (error) {
           console.error('Error parsing document data:', error)
         }
       }
     }
-    
-    // Auto-focus and scroll for mobile keyboards
-    const focusAndScroll = () => {
-      if (textareaRef.current) {
-        textareaRef.current.focus()
-        
-        // Mobile keyboard detection and adjustment
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-        
-        if (isMobile) {
-          // Detect keyboard visibility with viewport height changes
-          const originalHeight = window.innerHeight
-          
-          const handleResize = () => {
-            const currentHeight = window.innerHeight
-            const heightDifference = originalHeight - currentHeight
-            
-            if (heightDifference > 150) { // Keyboard is likely visible
-              setIsKeyboardVisible(true)
-              // Scroll input into view above keyboard
-              setTimeout(() => {
-                chatInputRef.current?.scrollIntoView({ 
-                  behavior: 'smooth', 
-                  block: 'end' 
-                })
-              }, 100)
-            } else {
-              setIsKeyboardVisible(false)
-            }
-          }
-          
-          window.addEventListener('resize', handleResize)
-          
-          // Cleanup
-          return () => {
-            window.removeEventListener('resize', handleResize)
-          }
+
+    // Check if coming from chip selection
+    const selectedChip = localStorage.getItem('selectedChip')
+    if (selectedChip) {
+      setInputValue(selectedChip)
+      localStorage.removeItem('selectedChip')
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 100)
+    }
+
+    // Handle keyboard visibility and input positioning
+    const handleResize = () => {
+      const visualViewport = window.visualViewport
+      if (!visualViewport) return
+
+      const isKeyboardOpen = visualViewport.height < window.innerHeight
+      setIsKeyboardVisible(isKeyboardOpen)
+
+      if (isKeyboardOpen && chatInputRef.current) {
+        // Calculate the distance from bottom of viewport to input
+        const inputRect = chatInputRef.current.getBoundingClientRect()
+        const distanceFromBottom = window.innerHeight - inputRect.bottom
+
+        // If input is too close to keyboard, scroll it up
+        if (distanceFromBottom < 100) {
+          const scrollAmount = 100 - distanceFromBottom
+          window.scrollBy({
+            top: scrollAmount,
+            behavior: 'smooth'
+          })
         }
       }
     }
-    
-    // Auto-focus when coming from "Write about you" or "Portfolio URL"
-    if ((fromSource === 'write' || fromSource === 'portfolio') && textareaRef.current) {
-      // Small delay to ensure component is fully mounted
-      setTimeout(focusAndScroll, 300)
+
+    // Add resize listener for keyboard
+    window.visualViewport?.addEventListener('resize', handleResize)
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize)
+      window.removeEventListener('resize', handleResize)
     }
   }, [fromSource])
 
@@ -459,9 +456,16 @@ function ChatContent() {
           className="p-4 border-t border-white/10"
           ref={chatInputRef}
           style={{
-            // Adjust position when keyboard is visible on mobile
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             transform: isKeyboardVisible ? 'translateY(-20px)' : 'translateY(0)',
-            transition: 'transform 0.3s ease-out'
+            transition: 'transform 0.3s ease-out',
+            zIndex: 50
           }}
         >
           <div 

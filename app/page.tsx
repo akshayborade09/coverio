@@ -6,10 +6,12 @@ import Image from "next/image"
 import CustomIcon from "@/components/CustomIcon"
 import BottomNavigation from "@/components/BottomNavigation"
 import ScrollingChips from "@/components/ScrollingChips"
+import HistoryDrawer from "@/components/HistoryDrawer"
 
 export default function CoverIoApp() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showHistory, setShowHistory] = useState(false)
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -33,6 +35,9 @@ export default function CoverIoApp() {
   }
 
   const handleChipClick = (chip: string) => {
+    // Store the chip text in localStorage to be used in chat interface
+    localStorage.setItem('selectedChip', chip)
+    
     switch (chip) {
       case 'Cover Letter':
         router.push('/chat?from=write')
@@ -58,6 +63,23 @@ export default function CoverIoApp() {
       />
       
       <div className="fixed inset-0 flex flex-col text-[#ffffff] overflow-hidden">
+        {/* History Tab */}
+        <div className="absolute top-4 left-4 z-10">
+          <button
+            className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+            style={{
+              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
+              boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+              borderRadius: '44.45px',
+              outlineOffset: '-2px',
+              backdropFilter: 'blur(10.67px)',
+            }}
+            onClick={() => setShowHistory(true)}
+          >
+            <CustomIcon name="history" size={20} className="text-white" />
+          </button>
+        </div>
+
         {/* Profile Avatar */}
         <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden z-10">
           <div className="flex flex-col items-center">
@@ -87,6 +109,7 @@ export default function CoverIoApp() {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
+      <HistoryDrawer open={showHistory} onClose={() => setShowHistory(false)} />
     </>
   )
 }

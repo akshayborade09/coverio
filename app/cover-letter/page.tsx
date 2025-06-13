@@ -5,12 +5,14 @@ import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
 import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
+import HistoryDrawer from "@/components/HistoryDrawer"
 
 export default function CoverLetterPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
   const contentRef = useRef<HTMLElement | null>(null)
   const pdfContentRef = useRef<HTMLDivElement | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
 
   // Section data
   const sections = {
@@ -177,7 +179,7 @@ export default function CoverLetterPage() {
     <>
       <div className="flex flex-col min-h-screen overflow-hidden cover-letter-page">
         {/* Fixed Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-end px-4 relative">
+        <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-between px-4 relative">
           {/* Progressive blur overlay */}
           <div
             className="absolute inset-0 pointer-events-none"
@@ -188,6 +190,24 @@ export default function CoverLetterPage() {
               WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
             }}
           ></div>
+
+          {/* History Tab */}
+          <div className="relative z-10">
+            <button
+              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+              style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
+                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                borderRadius: '44.45px',
+                outline: '1px rgba(255,255,255,0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)',
+              }}
+              onClick={() => setShowHistory(true)}
+            >
+              <CustomIcon name="history" size={20} className="text-white" />
+            </button>
+          </div>
 
           {/* Action buttons */}
           <div className="flex gap-3 relative z-10">
@@ -205,6 +225,7 @@ export default function CoverLetterPage() {
               <CustomIcon name="summarise" size={20} />
               <span>Summarise</span>
             </button>
+            {/*
             <button
               className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
               onClick={handlePlay}
@@ -218,6 +239,7 @@ export default function CoverLetterPage() {
             >
               <CustomIcon name="play" size={20} className="text-[#ffffff]" />
             </button>
+            */}
             <button
               className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
               onClick={handleShare}
@@ -327,6 +349,7 @@ export default function CoverLetterPage() {
 
       {/* Bottom Navigation outside transformed container */}
       <BottomNavigation />
+      <HistoryDrawer open={showHistory} onClose={() => setShowHistory(false)} />
     </>
   )
 }

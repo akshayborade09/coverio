@@ -94,10 +94,7 @@ export default function MySpacePage() {
 
   return (
     <>
-      <div 
-        className="flex flex-col min-h-screen text-[#ffffff] relative pb-24"
-      >
-
+      <div className="flex flex-col min-h-screen text-white relative pb-24">
         {/* Profile Section */}
         <div className="flex flex-col items-center py-8">
           <div className="w-24 h-24 rounded-full bg-[#dec53b] flex items-center justify-center mb-4">
@@ -109,8 +106,8 @@ export default function MySpacePage() {
               <div className="w-8 h-2 bg-black rounded-full"></div>
             </div>
           </div>
-          <h1 className="text-2xl mb-1" style={{fontFamily:'"Playfair Display", serif'}}>Akshay Borhade</h1>
-          <p className="text-[#ffffff] opacity-70" style={{fontFamily:'"Playfair Display", serif'}}>UX Team Lead @ OLA</p>
+          <h1 className="text-2xl mb-1 font-playfair">Akshay Borhade</h1>
+          <p className="text-white opacity-70 font-playfair">UX Team Lead @ OLA</p>
         </div>
 
         {/* Documents List */}
@@ -136,69 +133,39 @@ export default function MySpacePage() {
                     <CustomIcon 
                       name={doc.type === "Link" ? "link2" : "document"} 
                       size={16} 
-                      className="text-[#ffffff] opacity-70" 
+                      className="text-white opacity-70" 
                     />
-                    <span 
-                      className="text-[#ffffff] opacity-70"
-                      style={{
-                        color: 'white',
-                        fontSize: 12,
-                        fontFamily: 'Open Sauce One',
-                        fontWeight: '400',
-                        lineHeight: '18px'
-                      }}
-                    >
+                    <span className="text-white opacity-70 text-xs font-open-sauce leading-[18px]">
                       {doc.type}
                     </span>
                   </div>
-                <span 
-                  style={{
-                    opacity: 0.30,
-                    textAlign: 'right',
-                    color: 'white',
-                    fontSize: 12,
-                    fontFamily: 'Open Sauce One',
-                    fontWeight: '400',
-                    lineHeight: '18px'
-                  }}
-                >
-                  {doc.date}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {getFileIcon(doc.icon)}
-                  <span 
-                    className="text-[#ffffff] flex-1 break-words"
-                    style={{
-                      color: 'white',
-                      fontSize: 14,
-                      fontFamily: 'Open Sauce One',
-                      fontWeight: '400',
-                      lineHeight: '22px'
-                    }}
-                  >
-                    {doc.name}
+                  <span className="text-white opacity-30 text-xs font-open-sauce leading-[18px] text-right">
+                    {doc.date}
                   </span>
                 </div>
-                <div className="flex gap-2 flex-shrink-0 opacity-70">
-                  {doc.type !== "Link" && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {getFileIcon(doc.icon)}
+                    <span className="text-white flex-1 break-words text-sm font-open-sauce leading-[22px]">
+                      {doc.name}
+                    </span>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0 opacity-70">
+                    {doc.type !== "Link" && (
+                      <button className="w-8 h-8 rounded-full flex items-center justify-center">
+                        <CustomIcon name="doc-download" size={20} className="text-white" />
+                      </button>
+                    )}
                     <button className="w-8 h-8 rounded-full flex items-center justify-center">
-                      <CustomIcon name="doc-download" size={20} className="text-[#ffffff]" />
+                      <CustomIcon name="doc-delete" size={20} className="text-white" />
                     </button>
-                  )}
-                  <button className="w-8 h-8 rounded-full flex items-center justify-center">
-                    <CustomIcon name="doc-delete" size={20} className="text-[#ffffff]" />
-                  </button>
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Bottom Navigation */}
       <BottomNavigation />
     </>
   )
