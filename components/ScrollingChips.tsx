@@ -125,7 +125,7 @@ export default function ScrollingChips({ onChipClick, onFileSelect }: ScrollingC
   }
 
   const handleAddLink = () => {
-    window.location.href = '/chat'
+    window.location.href = '/chat?from=portfolio'
   }
 
   return (
