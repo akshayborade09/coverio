@@ -14,6 +14,10 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    disableStaticImages: true,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    remotePatterns: []
   },
   webpack(config) {
     config.resolve = config.resolve || {};
