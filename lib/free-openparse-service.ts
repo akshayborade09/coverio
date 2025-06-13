@@ -1,6 +1,7 @@
 import { FreeVectorStore } from './free-vector-store';
 import * as cheerio from 'cheerio';
 import puppeteer from 'puppeteer';
+import { ChromaApi, OpenAIEmbeddingFunction } from "chromadb"
 
 export class FreeOpenParseService {
   private vectorStore: FreeVectorStore;
