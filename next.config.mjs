@@ -24,6 +24,7 @@ const nextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       chromadb: path.resolve(__dirname, 'lib/chromadb-stub.ts'),
+      sharp: path.resolve(__dirname, 'lib/sharp-stub.js')
     };
     return config;
   },
