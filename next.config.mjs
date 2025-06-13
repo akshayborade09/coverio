@@ -1,3 +1,9 @@
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -13,7 +19,7 @@ const nextConfig = {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      chromadb: require('path').resolve(__dirname, 'lib/chromadb-stub.ts'),
+      chromadb: path.resolve(__dirname, 'lib/chromadb-stub.ts'),
     };
     return config;
   },
