@@ -78,20 +78,20 @@ function CoverLetterPageInner() {
     if (localHistory) {
       try {
         const parsed = JSON.parse(localHistory)
-        session = parsed.find((s: any) => s.id === sessionId)
+        session = parsed.find((s: any) => s && s.id === sessionId)
       } catch {}
     }
   }
   if (!session && sessionId) {
-    session = dummyCoverLetters.find((s) => s.id === sessionId)
+    session = dummyCoverLetters.find((s: any) => s && s.id === sessionId)
   }
   // Fallback to first mock if nothing found
   if (!session) {
     session = dummyCoverLetters[0]
   }
 
-  // Use session.sections for rendering
-  const selectedSections = session.sections || {}
+  // Use session.sections for rendering, with robust null check
+  const selectedSections = (session && session.sections && typeof session.sections === 'object') ? session.sections : {}
 
   useEffect(() => {
     function checkScrollable() {
