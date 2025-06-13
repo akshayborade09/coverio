@@ -192,9 +192,6 @@ function CoverLetterPageInner() {
     }
   }
 
-  // Use correct sections for selected cover letter
-  const selectedSections = session.sections || {}
-
   const handleEditSection = (coverLetterIdx: number, sectionKey: string) => {
     window.location.href = `/cover-letter/edit?coverLetter=${coverLetterIdx}&section=${sectionKey}`
   }
