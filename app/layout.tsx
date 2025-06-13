@@ -5,8 +5,16 @@ export const metadata: Metadata = {
   title: 'Cover.io',
   description: 'AI-powered cover letter generator',
   generator: 'v0.dev',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, minimal-ui',
 }
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: 'no',
+  viewportFit: 'cover',
+  minimalUi: true,
+};
 
 export default function RootLayout({
   children,

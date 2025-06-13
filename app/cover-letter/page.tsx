@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
 import BottomNavigation from "@/components/BottomNavigation"
@@ -58,7 +58,7 @@ const coverLetterTitles = [
   "Research about Tesla's company culture."
 ]
 
-export default function CoverLetterPage() {
+function CoverLetterPageInner() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
   const contentRef = useRef<HTMLElement | null>(null)
@@ -66,15 +66,32 @@ export default function CoverLetterPage() {
   const [showHistory, setShowHistory] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [selectedCoverLetter, setSelectedCoverLetter] = useState(0) // 0: current, 1: dummy1, 2: dummy2
   const [isScrollable, setIsScrollable] = useState(false)
 
-  useEffect(() => {
-    const selected = searchParams ? Number(searchParams.get('selected')) : 0
-    if (!isNaN(selected) && selected >= 0) {
-      setSelectedCoverLetter(selected)
+  // Get session id from query
+  const sessionId = searchParams?.get('id')
+
+  // Find session in localStorage or mockHistory
+  let session = null
+  if (typeof window !== 'undefined' && sessionId) {
+    const localHistory = localStorage.getItem('chatHistory')
+    if (localHistory) {
+      try {
+        const parsed = JSON.parse(localHistory)
+        session = parsed.find((s: any) => s.id === sessionId)
+      } catch {}
     }
-  }, [searchParams])
+  }
+  if (!session && sessionId) {
+    session = dummyCoverLetters.find((s) => s.id === sessionId)
+  }
+  // Fallback to first mock if nothing found
+  if (!session) {
+    session = dummyCoverLetters[0]
+  }
+
+  // Use session.sections for rendering
+  const selectedSections = session.sections || {}
 
   useEffect(() => {
     function checkScrollable() {
@@ -88,7 +105,7 @@ export default function CoverLetterPage() {
     checkScrollable()
     window.addEventListener('resize', checkScrollable)
     return () => window.removeEventListener('resize', checkScrollable)
-  }, [selectedCoverLetter])
+  }, [sessionId])
 
   // Section data
   const mainSections = {
@@ -176,9 +193,7 @@ export default function CoverLetterPage() {
   }
 
   // Use correct sections for selected cover letter
-  const selectedSections = selectedCoverLetter === 0
-    ? mainSections
-    : dummyCoverLetters[selectedCoverLetter]?.sections || {}
+  const selectedSections = session.sections || {}
 
   const handleEditSection = (coverLetterIdx: number, sectionKey: string) => {
     window.location.href = `/cover-letter/edit?coverLetter=${coverLetterIdx}&section=${sectionKey}`
@@ -406,56 +421,32 @@ export default function CoverLetterPage() {
                 style={{ cursor: 'pointer' }}
                 tabIndex={0}
               >
-                {coverLetterTitles[selectedCoverLetter]}
+                {coverLetterTitles[session === dummyCoverLetters[0] ? 0 : 1]}
               </a>
             </div>
-            {selectedCoverLetter === 0
-              ? Object.entries(selectedSections).map(([key, section]) => (
-                  <div key={key} className="border-b border-white/5 pb-6 mb-6">
-                    <div className="flex justify-between items-center mb-3">
-                      {section.title && (
-                        <h2 className="text-white text-lg font-semibold leading-6 break-words" style={{fontFamily:'\"Playfair Display\", serif'}}>{section.title}</h2>
-                      )}
-                      <button
-                        className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10"
-                        onClick={() => handleEditSection(selectedCoverLetter, key)}
-                      >
-                        <CustomIcon name="pencil" size={20} />
-                      </button>
-                    </div>
-                    <ul className="text-white text-sm font-sans font-light leading-6 break-words space-y-3">
-                      {section.bullets.map((bullet: string, index: number) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-[#ffffff] mr-3">•</span>
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))
-              : Object.entries(selectedSections).map(([key, section]) => (
-                  <div key={key} className="border-b border-white/5 pb-6 mb-6">
-                    <div className="flex justify-between items-center mb-3">
-                      {section.title && (
-                        <h2 className="text-white text-base font-semibold leading-6 break-words" style={{fontFamily:'\"Playfair Display\", serif'}}>{section.title}</h2>
-                      )}
-                      <button
-                        className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10"
-                        onClick={() => handleEditSection(selectedCoverLetter, key)}
-                      >
-                        <CustomIcon name="pencil" size={20} />
-                      </button>
-                    </div>
-                    <ul className="text-white text-sm font-sans font-light leading-6 break-words space-y-3">
-                      {section.bullets.map((bullet: string, index: number) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-[#ffffff] mr-3">•</span>
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+            {Object.entries(selectedSections).map(([key, section]) => (
+              <div key={key} className="border-b border-white/5 pb-6 mb-6">
+                <div className="flex justify-between items-center mb-3">
+                  {section.title && (
+                    <h2 className="text-white text-lg font-semibold leading-6 break-words" style={{fontFamily:'\"Playfair Display\", serif'}}>{section.title}</h2>
+                  )}
+                  <button
+                    className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10"
+                    onClick={() => handleEditSection(session === dummyCoverLetters[0] ? 0 : 1, key)}
+                  >
+                    <CustomIcon name="pencil" size={20} />
+                  </button>
+                </div>
+                <ul className="text-white text-sm font-sans font-light leading-6 break-words space-y-3">
+                  {section.bullets.map((bullet: string, index: number) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-[#ffffff] mr-3">•</span>
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </main>
 
@@ -483,9 +474,16 @@ export default function CoverLetterPage() {
       <SharedHistory 
         open={showHistory} 
         onClose={() => setShowHistory(false)} 
-        onSelectHistory={setSelectedCoverLetter}
         type="cover-letter"
       />
     </>
+  )
+}
+
+export default function CoverLetterPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CoverLetterPageInner />
+    </Suspense>
   )
 }
