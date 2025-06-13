@@ -550,13 +550,11 @@ function EditPageContent() {
       {showFeedback && (
         <div className="fixed bottom-4 left-4 right-4 z-50">
           <div className="flex items-center justify-center">
-            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium"
+            <div className="px-4 py-3 rounded-xl text-white text-sm font-medium"
               style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                outline: '1px rgba(255, 255, 255, 0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
+                background: 'linear-gradient(137deg, rgba(239,68,68,0.95) 0%, rgba(220,38,38,0.95) 100%)',
+                borderRadius: '46px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.25)',
               }}
             >
               {feedbackMessage}
