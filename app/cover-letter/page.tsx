@@ -1,12 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import html2canvas from "html2canvas"
+import jsPDF from "jspdf"
 import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
 
 export default function CoverLetterPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
+  const contentRef = useRef<HTMLElement | null>(null)
+  const pdfContentRef = useRef<HTMLDivElement | null>(null)
 
   // Section data
   const sections = {
@@ -106,11 +110,67 @@ export default function CoverLetterPage() {
   const handleSummarise = () => {
     showFeedbackMessage('Generating cover letter summary...')
   }
+
   const handlePlay = () => {
     showFeedbackMessage('Playing cover letter...')
   }
-  const handleShare = () => {
-    showFeedbackMessage('Sharing cover letter...')
+
+  const handleShare = async () => {
+    try {
+      if (!pdfContentRef.current) return
+
+      // Show loading message
+      showFeedbackMessage('Generating PDF...')
+
+      // Create PDF
+      const pdf = new jsPDF('p', 'pt', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 40
+
+      // Get all section elements
+      const sectionElements = Array.from(pdfContentRef.current.getElementsByClassName('pdf-section'))
+      let currentY = margin
+
+      for (const section of sectionElements) {
+        // Capture each section separately
+        const canvas = await html2canvas(section as HTMLElement, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        })
+
+        // Calculate dimensions
+        const imgWidth = pageWidth - (2 * margin)
+        const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+        // Check if we need a new page
+        if (currentY + imgHeight > pageHeight - margin) {
+          pdf.addPage()
+          currentY = margin
+        }
+
+        // Add the section to PDF
+        pdf.addImage(
+          canvas.toDataURL('image/png'),
+          'PNG',
+          margin,
+          currentY,
+          imgWidth,
+          imgHeight
+        )
+
+        // Update Y position
+        currentY += imgHeight + 20 // Add some space between sections
+      }
+
+      // Save PDF
+      pdf.save('cover-letter.pdf')
+      showFeedbackMessage('Cover letter downloaded as PDF!')
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      showFeedbackMessage('Error generating PDF. Please try again.')
+    }
   }
 
   return (
@@ -174,12 +234,59 @@ export default function CoverLetterPage() {
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 pt-0 pb-24 px-4 overflow-y-auto">
+        {/* Hidden PDF Content */}
+        <div className="fixed left-0 top-0 -z-50" style={{ opacity: 0, pointerEvents: 'none' }}>
+          <div ref={pdfContentRef} style={{
+            width: '595pt',
+            backgroundColor: '#ffffff',
+            padding: '0',
+            margin: '0'
+          }}>
+            {Object.entries(sections).map(([key, section]) => (
+              <div key={key} className="pdf-section" style={{
+                padding: '20pt',
+                borderBottom: '1px solid #E5E5E5',
+                backgroundColor: '#ffffff'
+              }}>
+                <h2 style={{
+                  fontFamily: '"Playfair Display", serif',
+                  fontSize: '18pt',
+                  fontWeight: 600,
+                  color: '#000000',
+                  marginBottom: '16pt',
+                  marginTop: 0
+                }}>{section.title}</h2>
+                <ul style={{
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: 0,
+                  color: '#000000'
+                }}>
+                  {section.bullets.map((bullet, index) => (
+                    <li key={index} style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      marginBottom: '12pt',
+                      fontSize: '12pt',
+                      lineHeight: 1.5,
+                      color: '#000000'
+                    }}>
+                      <span style={{ marginRight: '12pt', color: '#000000' }}>•</span>
+                      <span style={{ color: '#000000' }}>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Visible Content */}
+        <main ref={contentRef} className="flex-1 pt-0 pb-24 px-4 overflow-y-auto">
           {Object.entries(sections).map(([key, section]) => (
             <div key={key} className="border-b border-white/5 pb-6 mb-6">
               <div className="flex justify-between items-center mb-3">
-                <h2 className="opacity-60 text-white text-lg font-semibold leading-6 break-words" style={{fontFamily:'"Playfair Display", serif'}}>{section.title}</h2>
+                <h2 className="text-white text-lg font-semibold leading-6 break-words" style={{fontFamily:'"Playfair Display", serif'}}>{section.title}</h2>
                 <button
                   className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10"
                   onClick={() => handleEditSection(key)}
@@ -187,7 +294,7 @@ export default function CoverLetterPage() {
                   <CustomIcon name="pencil" size={20} />
                 </button>
               </div>
-              <ul className="w-full opacity-60 text-white text-sm font-sans font-light leading-6 break-words space-y-4">
+              <ul className="text-white text-sm font-sans font-light leading-6 break-words space-y-4">
                 {section.bullets.map((bullet, index) => (
                   <li key={index} className="flex items-start">
                     <span className="text-[#ffffff] mr-3">•</span>

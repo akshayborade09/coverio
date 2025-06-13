@@ -1,41 +1,15 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import CustomIcon from "@/components/CustomIcon"
 import BottomNavigation from "@/components/BottomNavigation"
+import ScrollingChips from "@/components/ScrollingChips"
 
 export default function CoverIoApp() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Reset page state and prevent scrolling
-  useEffect(() => {
-    // Reset scroll position to ensure consistent positioning
-    window.scrollTo(0, 0)
-    
-    // Reset any lingering CSS transforms or positioning
-    document.body.style.transform = ''
-    document.body.style.position = ''
-    document.body.style.left = ''
-    document.body.style.right = ''
-    document.body.style.width = ''
-    
-    // Disable scrolling on body
-    document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
-    
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = 'auto'
-      document.documentElement.style.overflow = 'auto'
-    }
-  }, [])
-
-  const handleAddDocument = () => {
-    console.log('Add document clicked')
-    fileInputRef.current?.click()
-  }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -58,14 +32,18 @@ export default function CoverIoApp() {
     }
   }
 
-  const handleWriteAboutYou = () => {
-    console.log('Write about you clicked')
-    router.push('/chat?from=write')
-  }
-
-  const handlePortfolioURL = () => {
-    console.log('Portfolio URL clicked')
-    router.push('/chat?from=portfolio')
+  const handleChipClick = (chip: string) => {
+    switch (chip) {
+      case 'Cover Letter':
+        router.push('/chat?from=write')
+        break
+      case 'Company Research':
+      case 'Interviewer Research':
+        router.push('/chat?from=research')
+        break
+      default:
+        router.push(`/chat?topic=${encodeURIComponent(chip)}`)
+    }
   }
 
   return (
@@ -89,78 +67,20 @@ export default function CoverIoApp() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 pb-32">
-          <h1 className="text-5xl" style={{fontFamily:'"Playfair Display", serif'}}>Cover.io</h1>
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-32">
+          <Image 
+            src="/Images/logo.png"
+            alt="Cover.io Logo"
+            width={120}
+            height={120}
 
-          <div className="w-full max-w-md flex flex-col gap-4 mt-4 items-center">
-            {/* Two buttons side by side */}
-            <div className="flex gap-3 justify-center w-full">
-              <div 
-                className="p-[1.477px] rounded-[76.948px]"
-                style={{
-                  background: 'linear-gradient(15deg, rgba(255,255,255,0.4) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.4) 100%)',
-                }}
-              >
-                <button 
-                  onClick={handleAddDocument}
-                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px] cursor-pointer"
-                  style={{
-                    background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
-                    boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
-                    backdropFilter: 'blur(20.39114761352539px)',
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  <CustomIcon name="file-text, document" size={20} />
-                  <span style={{ fontSize: '14px' }}>Add a document</span>
-                </button>
-              </div>
+            priority
+          />
+          <h1 className="text-4xl" style={{fontFamily:'"Playfair Display", serif'}}>Cover.io</h1>
 
-              <div 
-                className="p-[1.477px] rounded-[76.948px]"
-                style={{
-                  background: 'linear-gradient(15deg, rgba(255,255,255,0.4) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.4) 100%)',
-                }}
-              >
-                <button 
-                  onClick={handlePortfolioURL}
-                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px] cursor-pointer"
-                  style={{
-                    background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
-                    boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
-                    backdropFilter: 'blur(20.39114761352539px)',
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  <CustomIcon name="link" size={20} />
-                  <span style={{ fontSize: '14px' }}>Portfolio URL</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Third button on new row */}
-            <div className="flex justify-center w-full">
-              <div 
-                className="p-[1.477px] rounded-[76.948px]"
-                style={{
-                  background: 'linear-gradient(15deg, rgba(255,255,255,0.4) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.4) 100%)',
-                }}
-              >
-                <button 
-                  onClick={handleWriteAboutYou}
-                  className="flex items-center gap-2 text-[#ffffff] py-3 px-3 rounded-[76.948px] cursor-pointer"
-                  style={{
-                    background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.25) 95%)',
-                    boxShadow: '0px 0.657px 15.762px -0.657px rgba(0, 0, 0, 0.18)',
-                    backdropFilter: 'blur(20.39114761352539px)',
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  <CustomIcon name="write" size={20} />
-                  <span style={{ fontSize: '14px' }}>Write about you</span>
-                </button>
-              </div>
-            </div>
+          {/* Scrolling Chips */}
+          <div className="w-full">
+            <ScrollingChips onChipClick={handleChipClick} />
           </div>
         </div>
       </div>

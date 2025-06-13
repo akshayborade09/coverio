@@ -217,8 +217,8 @@ function ChatContent() {
           alt={document.name}
           className="w-full h-full object-cover rounded-lg"
           style={{
-            width: '72px',
-            height: '72px',
+            width: '64px',
+            height: '64px',
             objectFit: 'cover'
           }}
         />
@@ -231,8 +231,8 @@ function ChatContent() {
         <div 
           className="w-full h-full rounded-lg flex items-center justify-center text-white"
           style={{
-            width: '72px',
-            height: '72px',
+            width: '64px',
+            height: '64px',
             backgroundColor: '#FF3B3B'
           }}
         >
@@ -247,8 +247,8 @@ function ChatContent() {
         <div 
           className="w-full h-full rounded-lg flex items-center justify-center text-white"
           style={{
-            width: '72px',
-            height: '72px',
+            width: '64px',
+            height: '64px',
             backgroundColor: '#3BADFF'
           }}
         >
@@ -262,8 +262,8 @@ function ChatContent() {
       <div 
         className="w-full h-full rounded-lg flex flex-col items-center justify-center text-white bg-gray-600"
         style={{
-          width: '72px',
-          height: '72px'
+          width: '64px',
+          height: '64px'
         }}
       >
         <CustomIcon name="file" size={24} className="mb-1" />
@@ -308,8 +308,8 @@ function ChatContent() {
                     <div 
                       className="relative overflow-hidden rounded-xl"
                       style={{ 
-                        width: '72px', 
-                        height: '72px',
+                        width: '64px', 
+                        height: '64px',
                         border: '1px solid rgba(255, 255, 255, 0.1)'
                       }}
                     >
@@ -320,7 +320,7 @@ function ChatContent() {
                         className="absolute top-0 right-0"
                         style={{ 
                           zIndex: 10,
-                          padding: '4px'
+                          padding: '2px'
                         }}
                       >
                         <button
@@ -333,7 +333,7 @@ function ChatContent() {
                     </div>
                     
                     {/* File info below thumbnail */}
-                    <div className="mt-2 max-w-[72px]">
+                    <div className="mt-2 max-w-[64px]">
                       <div className="text-xs text-white opacity-60 text-center leading-tight truncate">
                         {document.name}
                       </div>
@@ -486,7 +486,7 @@ function ChatContent() {
                 <div 
                   className="flex gap-3 flex-wrap transition-all duration-300 cursor-pointer"
                   style={{
-                    transform: isTyping ? 'scale(0.4)' : 'scale(1)',
+                    transform: isTyping ? 'scale(0.5)' : 'scale(1)',
                     transformOrigin: 'top left'
                   }}
                   onClick={() => {
@@ -501,8 +501,8 @@ function ChatContent() {
                       <div 
                         className={`relative overflow-hidden ${isTyping ? 'rounded-full' : 'rounded-xl'} transition-all duration-300`}
                         style={{ 
-                          width: '72px', 
-                          height: '72px',
+                          width: '64px', 
+                          height: '64px',
                           border: '1px solid rgba(255, 255, 255, 0.1)'
                         }}
                       >
@@ -514,7 +514,7 @@ function ChatContent() {
                             className="absolute top-0 right-0"
                             style={{ 
                               zIndex: 10,
-                              padding: '4px'
+                              padding: '2px'
                             }}
                           >
                             <button
@@ -532,7 +532,7 @@ function ChatContent() {
                       
                       {/* File info below thumbnail - hide when typing */}
                                               {!isTyping && (
-                          <div className="mt-2 max-w-[72px]">
+                          <div className="mt-2 max-w-[64px]">
                             <div className="text-xs text-white opacity-60 text-center leading-tight truncate">
                             {document.name}
                           </div>
