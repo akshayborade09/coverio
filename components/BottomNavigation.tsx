@@ -18,9 +18,9 @@ export default function BottomNavigation({}: BottomNavigationProps) {
       isCircular: true,
     },
     {
-      href: "/cover-letter",
-      icon: "cover-letter",
-      label: "Cover letter",
+      href: "/chat?from=write-own",
+      icon: "write2",
+      label: "Write Own",
       isCircular: false,
     },
     {

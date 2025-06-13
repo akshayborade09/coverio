@@ -35,6 +35,9 @@ function ChatContent() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatInputRef = useRef<HTMLDivElement>(null)
 
+  // Track if we've already created a session for this chat
+  const [sessionCreated, setSessionCreated] = useState(false);
+
   useEffect(() => {
     // Check if coming from document upload
     if (fromSource === 'document') {
@@ -55,6 +58,14 @@ function ChatContent() {
     if (selectedChip) {
       setInputValue(selectedChip)
       localStorage.removeItem('selectedChip')
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 100)
+    }
+
+    // If coming from write-own or write-your-own, clear and focus input
+    if (fromSource === 'write-own' || fromSource === 'write-your-own') {
+      setInputValue("")
       setTimeout(() => {
         textareaRef.current?.focus()
       }, 100)
@@ -161,8 +172,42 @@ function ChatContent() {
     setSelectedDocuments(prev => prev.filter((_, i) => i !== index))
   }
 
+  // Helper to add or update a chat session in localStorage and move it to the top
+  function upsertChatSessionInHistory(session) {
+    const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+    // Remove any existing session with the same id
+    const filtered = history.filter((s) => s.id !== session.id);
+    // Add updated session to the top
+    filtered.unshift(session);
+    localStorage.setItem('chatHistory', JSON.stringify(filtered));
+  }
+
   const handleSend = () => {
     if (inputValue.trim() || selectedDocuments.length > 0) {
+      let sessionId = '';
+      if ((fromSource === 'write-own' || fromSource === 'write-your-own')) {
+        // Use the same session id if already created, else new
+        if (!sessionCreated) {
+          sessionId = Date.now().toString();
+          setSessionCreated(true);
+        } else {
+          // Find the latest session id from localStorage
+          const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+          sessionId = history.length > 0 ? history[0].id : Date.now().toString();
+        }
+      } else {
+        // For other chat types, use a generic id (could be improved for multi-session)
+        sessionId = 'default';
+      }
+      // Always upsert the session on every send
+      const newSession = {
+        id: sessionId,
+        prompt: inputValue.trim() || 'Write something about yourself',
+        date: new Date().toISOString(),
+        documents: selectedDocuments,
+        type: fromSource || 'chat',
+      };
+      upsertChatSessionInHistory(newSession);
       const newMessage = {
         id: Date.now().toString(),
         content: inputValue.trim(),
@@ -281,6 +326,16 @@ function ChatContent() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
+  // Determine placeholder based on source
+  let chatPlaceholder = "Add context about your document";
+  if (fromSource === 'write-own' || fromSource === 'write-your-own') {
+    chatPlaceholder = "Write something about yourself";
+  } else if (fromSource === 'write') {
+    chatPlaceholder = "Write your own information";
+  } else if (fromSource === 'portfolio') {
+    chatPlaceholder = "Enter your portfolio URL or share details about your work";
+  }
+
   // Full-screen chat input
   if (isFullScreen) {
     return (
@@ -345,13 +400,7 @@ function ChatContent() {
           <div className="flex-1 px-4 mb-3">
             <textarea
               ref={textareaRef}
-              placeholder={
-                fromSource === 'write' 
-                  ? "Write something about yourself" 
-                  : fromSource === 'portfolio'
-                  ? "Enter your portfolio URL or share details about your work"
-                  : "Add context about your document"
-              }
+              placeholder={chatPlaceholder}
               className="bg-transparent border-none outline-none w-full h-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none"
               value={inputValue}
               onChange={(e) => {
@@ -453,14 +502,13 @@ function ChatContent() {
 
         {/* Chat Input Area */}
         <div 
-          className="p-4 border-t border-white/10"
+          className="p-4 "
           ref={chatInputRef}
           style={{
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             backdropFilter: 'blur(10px)',
             WebkitBackdropFilter: 'blur(10px)',
             transform: isKeyboardVisible ? 'translateY(-20px)' : 'translateY(0)',
@@ -469,11 +517,11 @@ function ChatContent() {
           }}
         >
           <div 
-            className="rounded-3xl p-4 w-full relative"
+            className="rounded-3xl p-3 w-full relative"
             style={{
-              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.10) 0%, rgba(113.69, 113.69, 113.69, 0.08) 95%)',
+              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.05) 0%, rgba(113.69, 113.69, 113.69, 0.08) 95%)',
               boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-              outline: '1px rgba(255, 255, 255, 0.10) solid',
+              outline: '1px rgba(255, 255, 255, 0.05) solid',
               outlineOffset: '-1px',
               backdropFilter: 'blur(10.67px)',
             }}
@@ -552,13 +600,7 @@ function ChatContent() {
             <div className="mb-4">
               <textarea
                 ref={textareaRef}
-                placeholder={
-                  fromSource === 'write' 
-                    ? "Write something about yourself" 
-                    : fromSource === 'portfolio'
-                    ? "Enter your portfolio URL or share details about your work"
-                    : "Add context about your document"
-                }
+                placeholder={chatPlaceholder}
                 className="bg-transparent border-none outline-none w-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none overflow-hidden"
                 value={inputValue}
                 onChange={(e) => {
@@ -619,7 +661,7 @@ function ChatContent() {
               <button 
                 onClick={handleAttach}
                 disabled={selectedDocuments.length >= 3}
-                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+                className="w-10 h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -632,7 +674,7 @@ function ChatContent() {
               <button 
                 onClick={handleSend}
                 disabled={!inputValue.trim() && selectedDocuments.length === 0}
-                className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+                className="w-10 h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                   boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',

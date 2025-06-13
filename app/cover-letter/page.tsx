@@ -5,7 +5,58 @@ import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
 import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
-import HistoryDrawer from "@/components/HistoryDrawer"
+import SharedHistory from "@/components/SharedHistory"
+import { useRouter, useSearchParams } from "next/navigation"
+
+const dummyCoverLetters = [
+  // 1st: current cover letter (sections)
+  null,
+  // 2nd: dummy content (sections)
+  {
+    sections: {
+      'intro': {
+        title: 'Introduction',
+        bullets: [
+          'Dear Hiring Manager,',
+          'I am excited to apply for the Product Manager position.'
+        ]
+      },
+      'experience': {
+        title: 'Relevant Experience',
+        bullets: [
+          'Led cross-functional teams to deliver successful products.',
+          'Proven track record in market research and agile development.'
+        ]
+      },
+      'closing': {
+        title: 'Closing',
+        bullets: [
+          'Thank you for considering my application.',
+          'Sincerely, Akshay Borhade'
+        ]
+      }
+    }
+  },
+  // 3rd: dummy content (sections)
+  {
+    sections: {
+      'summary': {
+        title: 'Tesla Company Culture Research',
+        bullets: [
+          "Tesla's company culture is defined by innovation, fast-paced execution, and a mission-driven approach.",
+          'Employees are encouraged to take ownership and challenge the status quo.',
+          'The environment is demanding but rewarding for those passionate about making a difference.'
+        ]
+      }
+    }
+  }
+]
+
+const coverLetterTitles = [
+  'Write a cover letter for a software engineer role at Google.',
+  'Summarize my experience for a product manager position.',
+  "Research about Tesla's company culture."
+]
 
 export default function CoverLetterPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
@@ -13,9 +64,34 @@ export default function CoverLetterPage() {
   const contentRef = useRef<HTMLElement | null>(null)
   const pdfContentRef = useRef<HTMLDivElement | null>(null)
   const [showHistory, setShowHistory] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [selectedCoverLetter, setSelectedCoverLetter] = useState(0) // 0: current, 1: dummy1, 2: dummy2
+  const [isScrollable, setIsScrollable] = useState(false)
+
+  useEffect(() => {
+    const selected = searchParams ? Number(searchParams.get('selected')) : 0
+    if (!isNaN(selected) && selected >= 0) {
+      setSelectedCoverLetter(selected)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    function checkScrollable() {
+      if (contentRef.current) {
+        const contentHeight = contentRef.current.scrollHeight
+        // Account for header (80px) and bottom navigation (96px)
+        const visibleHeight = window.innerHeight - 176
+        setIsScrollable(contentHeight > visibleHeight)
+      }
+    }
+    checkScrollable()
+    window.addEventListener('resize', checkScrollable)
+    return () => window.removeEventListener('resize', checkScrollable)
+  }, [selectedCoverLetter])
 
   // Section data
-  const sections = {
+  const mainSections = {
     'proven-impact': {
       title: 'Proven Impact',
       bullets: [
@@ -99,8 +175,13 @@ export default function CoverLetterPage() {
     }
   }
 
-  const handleEditSection = (sectionKey: string) => {
-    window.location.href = `/cover-letter/edit?section=${sectionKey}`
+  // Use correct sections for selected cover letter
+  const selectedSections = selectedCoverLetter === 0
+    ? mainSections
+    : dummyCoverLetters[selectedCoverLetter]?.sections || {}
+
+  const handleEditSection = (coverLetterIdx: number, sectionKey: string) => {
+    window.location.href = `/cover-letter/edit?coverLetter=${coverLetterIdx}&section=${sectionKey}`
   }
 
   const showFeedbackMessage = (message: string) => {
@@ -264,27 +345,31 @@ export default function CoverLetterPage() {
             padding: '0',
             margin: '0'
           }}>
-            {Object.entries(sections).map(([key, section]) => (
+            {Object.entries(selectedSections).map(([key, section]) => (
               <div key={key} className="pdf-section" style={{
                 padding: '20pt',
                 borderBottom: '1px solid #E5E5E5',
                 backgroundColor: '#ffffff'
               }}>
-                <h2 style={{
-                  fontFamily: '"Playfair Display", serif',
-                  fontSize: '18pt',
-                  fontWeight: 600,
-                  color: '#000000',
-                  marginBottom: '16pt',
-                  marginTop: 0
-                }}>{section.title}</h2>
+                <div className="flex justify-between items-center mb-3">
+                  {section.title && (
+                    <h2 style={{
+                      fontFamily: '"Playfair Display", serif',
+                      fontSize: '18pt',
+                      fontWeight: 600,
+                      color: '#000000',
+                      marginBottom: '16pt',
+                      marginTop: 0
+                    }}>{section.title}</h2>
+                  )}
+                </div>
                 <ul style={{
                   listStyle: 'none',
                   padding: 0,
                   margin: 0,
                   color: '#000000'
                 }}>
-                  {section.bullets.map((bullet, index) => (
+                  {section.bullets.map((bullet: string, index: number) => (
                     <li key={index} style={{
                       display: 'flex',
                       alignItems: 'flex-start',
@@ -304,28 +389,74 @@ export default function CoverLetterPage() {
         </div>
 
         {/* Visible Content */}
-        <main ref={contentRef} className="flex-1 pt-0 pb-24 px-4 overflow-y-auto">
-          {Object.entries(sections).map(([key, section]) => (
-            <div key={key} className="border-b border-white/5 pb-6 mb-6">
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-white text-lg font-semibold leading-6 break-words" style={{fontFamily:'"Playfair Display", serif'}}>{section.title}</h2>
-                <button
-                  className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10"
-                  onClick={() => handleEditSection(key)}
-                >
-                  <CustomIcon name="pencil" size={20} />
-                </button>
-              </div>
-              <ul className="text-white text-sm font-sans font-light leading-6 break-words space-y-4">
-                {section.bullets.map((bullet, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-[#ffffff] mr-3">•</span>
-                    <span>{bullet}</span>
-                  </li>
-                ))}
-              </ul>
+        <main
+          ref={contentRef}
+          className={`flex-1 pt-2 pb-24 px-4 ${
+            isScrollable 
+              ? 'overflow-y-auto' 
+              : 'overflow-y-hidden flex items-center justify-center'
+          }`}
+        >
+          <div className={`w-full ${!isScrollable ? 'max-w-2xl mx-auto' : ''}`}>
+            {/* Cover Letter Title as Link */}
+            <div className="flex justify-center mb-6">
+              <a
+                href="#"
+                className="text-white text-xl font-playfair font-semibold"
+                style={{ cursor: 'pointer' }}
+                tabIndex={0}
+              >
+                {coverLetterTitles[selectedCoverLetter]}
+              </a>
             </div>
-          ))}
+            {selectedCoverLetter === 0
+              ? Object.entries(selectedSections).map(([key, section]) => (
+                  <div key={key} className="border-b border-white/5 pb-6 mb-6">
+                    <div className="flex justify-between items-center mb-3">
+                      {section.title && (
+                        <h2 className="text-white text-lg font-semibold leading-6 break-words" style={{fontFamily:'\"Playfair Display\", serif'}}>{section.title}</h2>
+                      )}
+                      <button
+                        className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10"
+                        onClick={() => handleEditSection(selectedCoverLetter, key)}
+                      >
+                        <CustomIcon name="pencil" size={20} />
+                      </button>
+                    </div>
+                    <ul className="text-white text-sm font-sans font-light leading-6 break-words space-y-3">
+                      {section.bullets.map((bullet: string, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-[#ffffff] mr-3">•</span>
+                          <span>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))
+              : Object.entries(selectedSections).map(([key, section]) => (
+                  <div key={key} className="border-b border-white/5 pb-6 mb-6">
+                    <div className="flex justify-between items-center mb-3">
+                      {section.title && (
+                        <h2 className="text-white text-base font-semibold leading-6 break-words" style={{fontFamily:'\"Playfair Display\", serif'}}>{section.title}</h2>
+                      )}
+                      <button
+                        className="text-[#ffffff] opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-90 p-2 rounded-full hover:bg-white/10"
+                        onClick={() => handleEditSection(selectedCoverLetter, key)}
+                      >
+                        <CustomIcon name="pencil" size={20} />
+                      </button>
+                    </div>
+                    <ul className="text-white text-sm font-sans font-light leading-6 break-words space-y-3">
+                      {section.bullets.map((bullet: string, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-[#ffffff] mr-3">•</span>
+                          <span>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+          </div>
         </main>
 
         {/* Feedback Toast */}
@@ -349,7 +480,12 @@ export default function CoverLetterPage() {
 
       {/* Bottom Navigation outside transformed container */}
       <BottomNavigation />
-      <HistoryDrawer open={showHistory} onClose={() => setShowHistory(false)} />
+      <SharedHistory 
+        open={showHistory} 
+        onClose={() => setShowHistory(false)} 
+        onSelectHistory={setSelectedCoverLetter}
+        type="cover-letter"
+      />
     </>
   )
 }

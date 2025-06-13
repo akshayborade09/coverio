@@ -6,7 +6,8 @@ import Image from "next/image"
 import CustomIcon from "@/components/CustomIcon"
 import BottomNavigation from "@/components/BottomNavigation"
 import ScrollingChips from "@/components/ScrollingChips"
-import HistoryDrawer from "@/components/HistoryDrawer"
+import SharedHistory from "@/components/SharedHistory"
+import NavigationBtn from "@/components/NavigationBtn"
 
 export default function CoverIoApp() {
   const router = useRouter()
@@ -71,7 +72,8 @@ export default function CoverIoApp() {
               background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
               boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
               borderRadius: '44.45px',
-              outlineOffset: '-2px',
+              outline: '1px rgba(255,255,255,0.10) solid',
+              outlineOffset: '-1px',
               backdropFilter: 'blur(10.67px)',
             }}
             onClick={() => setShowHistory(true)}
@@ -95,21 +97,45 @@ export default function CoverIoApp() {
             alt="Cover.io Logo"
             width={120}
             height={120}
-
             priority
           />
-          <h1 className="text-4xl" style={{fontFamily:'"Playfair Display", serif'}}>Cover.io</h1>
+          <h1 className="text-4xl" style={{fontFamily:'\"Playfair Display\", serif'}}>Cover.io</h1>
 
           {/* Scrolling Chips */}
           <div className="w-full">
             <ScrollingChips onChipClick={handleChipClick} />
           </div>
+
+          {/* Write Your Own Button - removed */}
+          {/* <div className="flex justify-center w-full">
+            <NavigationBtn
+              onClick={() => router.push('/chat?from=write-your-own')}
+              className="gap-2 px-6 py-3"
+              style={{
+                background: 'linear-gradient(137deg, rgba(0, 153, 255, 0.18) 0%, rgba(0, 51, 153, 0.12) 95%)',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '1rem',
+                borderRadius: '44.45px',
+                outline: '1px rgba(0,153,255,0.05) solid',
+                outlineOffset: '-1px',
+                minWidth: 0,
+                width: 'auto',
+                height: 48,
+                WebkitBackdropFilter: 'blur(10.67px)',
+              }}
+              ariaLabel="Write your own"
+            >
+              <CustomIcon name="write" size={20} className="text-white" />
+              <span>Write your own</span>
+            </NavigationBtn>
+          </div> */}
         </div>
       </div>
 
       {/* Bottom Navigation */}
       <BottomNavigation />
-      <HistoryDrawer open={showHistory} onClose={() => setShowHistory(false)} />
+      <SharedHistory open={showHistory} onClose={() => setShowHistory(false)} type="home" />
     </>
   )
 }

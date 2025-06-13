@@ -7,7 +7,8 @@ import CustomIcon from "@/components/CustomIcon"
 function EditPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const sectionKey = searchParams.get('section')
+  const sectionKey = searchParams ? searchParams.get('section') : null
+  const coverLetterIdx = Number(searchParams ? searchParams.get('coverLetter') || 0 : 0)
   const [editContent, setEditContent] = useState({ title: '', bullets: [''] })
   const [showDeleteToast, setShowDeleteToast] = useState(false)
   const [bulletToDelete, setBulletToDelete] = useState<number | null>(null)
@@ -21,6 +22,51 @@ function EditPageContent() {
   const [showFeedback, setShowFeedback] = useState(false)
   const dragAnimationRef = useRef<number | null>(null)
   const bulletRefs = useRef<(HTMLTextAreaElement | null)[]>([])
+
+  // Dummy cover letters (same as in main page)
+  const dummyCoverLetters = [
+    // 1st: current cover letter (sections)
+    null,
+    // 2nd: dummy content (sections)
+    {
+      sections: {
+        'intro': {
+          title: 'Introduction',
+          bullets: [
+            'Dear Hiring Manager,',
+            'I am excited to apply for the Product Manager position.'
+          ]
+        },
+        'experience': {
+          title: 'Relevant Experience',
+          bullets: [
+            'Led cross-functional teams to deliver successful products.',
+            'Proven track record in market research and agile development.'
+          ]
+        },
+        'closing': {
+          title: 'Closing',
+          bullets: [
+            'Thank you for considering my application.',
+            'Sincerely, Akshay Borhade'
+          ]
+        }
+      }
+    },
+    // 3rd: dummy content (sections)
+    {
+      sections: {
+        'summary': {
+          title: 'Tesla Company Culture Research',
+          bullets: [
+            "Tesla's company culture is defined by innovation, fast-paced execution, and a mission-driven approach.",
+            'Employees are encouraged to take ownership and challenge the status quo.',
+            'The environment is demanding but rewarding for those passionate about making a difference.'
+          ]
+        }
+      }
+    }
+  ]
 
   // Section data (same as cover letter page)
   const sections = {
@@ -107,13 +153,24 @@ function EditPageContent() {
     }
   }
 
-  // Initialize content based on section
+  // Initialize content based on coverLetterIdx and section
   useEffect(() => {
-    if (sectionKey && sections[sectionKey as keyof typeof sections]) {
-      const section = sections[sectionKey as keyof typeof sections]
-      setEditContent({ title: section.title, bullets: [...section.bullets] })
+    let section = null
+    if (coverLetterIdx === 0 && sectionKey && sections[sectionKey as keyof typeof sections]) {
+      section = sections[sectionKey as keyof typeof sections]
+    } else if (
+      coverLetterIdx > 0 &&
+      dummyCoverLetters[coverLetterIdx] &&
+      dummyCoverLetters[coverLetterIdx].sections &&
+      sectionKey &&
+      (dummyCoverLetters[coverLetterIdx].sections as Record<string, any>)[sectionKey]
+    ) {
+      section = (dummyCoverLetters[coverLetterIdx].sections as Record<string, any>)[sectionKey]
     }
-  }, [sectionKey])
+    if (section) {
+      setEditContent({ title: section.title || '', bullets: [...section.bullets] })
+    }
+  }, [coverLetterIdx, sectionKey])
 
   // Cleanup animation frame on unmount
   useEffect(() => {
@@ -145,7 +202,7 @@ function EditPageContent() {
   }
 
   const handleClose = () => {
-    router.back()
+    router.push(`/cover-letter?selected=${coverLetterIdx}`)
   }
 
   // Drag and delete handlers
