@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, Suspense } from "react"
+import React, { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import CustomIcon from "@/components/CustomIcon"
 import FileCard from "@/components/FileCard"
@@ -13,6 +13,21 @@ interface DocumentData {
   thumbnailUrl?: string
 }
 
+interface ChatSession {
+  id: string;
+  prompt: string;
+  date: string;
+  documents: DocumentData[];
+  type: string;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  isUser: boolean;
+  documents?: DocumentData[];
+}
+
 function ChatContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -20,7 +35,7 @@ function ChatContent() {
   const topic = searchParams?.get('topic')
   
   const [inputValue, setInputValue] = useState("")
-  const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean}>>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [selectedDocuments, setSelectedDocuments] = useState<DocumentData[]>([])
   const [isAtMaxHeight, setIsAtMaxHeight] = useState(false)
   const [isFullScreen, setIsFullScreen] = useState(false)
@@ -37,6 +52,20 @@ function ChatContent() {
 
   // Track if we've already created a session for this chat
   const [sessionCreated, setSessionCreated] = useState(false);
+
+  const ALLOWED_FILE_TYPES = {
+    'application/pdf': 'pdf',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx'
+  };
+
+  const isValidFileType = (file: File) => {
+    return Object.keys(ALLOWED_FILE_TYPES).includes(file.type);
+  };
 
   useEffect(() => {
     // Check if coming from document upload
@@ -111,8 +140,8 @@ function ChatContent() {
 
   const handleAttach = () => {
     // Check if already at limit before opening file picker
-    if (selectedDocuments.length >= 3) {
-      setErrorMessage('Only 3 attachments allowed')
+    if (selectedDocuments.length >= 1) {
+      setErrorMessage('Only 1 attachment allowed')
       setShowErrorToast(true)
       setTimeout(() => setShowErrorToast(false), 2000)
       return
@@ -123,43 +152,52 @@ function ChatContent() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files) {
-      const newFiles = Array.from(files)
+      const newFiles = Array.from(files) as File[]
       
       // Check if adding these files would exceed the limit
-      if (selectedDocuments.length + newFiles.length > 3) {
-        setErrorMessage('Only 3 attachments allowed')
+      if (selectedDocuments.length + newFiles.length > 1) {
+        setErrorMessage('Only 1 attachment allowed')
         setShowErrorToast(true)
         setTimeout(() => setShowErrorToast(false), 2000)
         return
       }
       
-      // Process each file
-      newFiles.forEach(file => {
-        // Create thumbnail for image files
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader()
-          reader.onload = (e) => {
-            const newDoc = {
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              file: file,
-              thumbnailUrl: e.target?.result as string
-            }
-            setSelectedDocuments(prev => [...prev, newDoc])
-          }
-          reader.readAsDataURL(file)
-        } else {
-          // For non-image files (PDF, DOC, etc.)
-          const newDoc = {
+      // Process the file
+      const file = newFiles[0] as File // Only take the first file
+      if (!file) return
+
+      // Validate file type
+      if (!isValidFileType(file)) {
+        setErrorMessage('Invalid file type. Allowed types: PDF, JPG, PNG, Word, Excel')
+        setShowErrorToast(true)
+        setTimeout(() => setShowErrorToast(false), 2000)
+        return
+      }
+
+      // Create thumbnail for image files
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const newDoc: DocumentData = {
             name: file.name,
             size: file.size,
             type: file.type,
-            file: file
+            file: file,
+            thumbnailUrl: e.target?.result as string
           }
-          setSelectedDocuments(prev => [...prev, newDoc])
+          setSelectedDocuments([newDoc]) // Replace any existing document
         }
-      })
+        reader.readAsDataURL(file)
+      } else {
+        // For non-image files (PDF, DOC, etc.)
+        const newDoc: DocumentData = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          file: file
+        }
+        setSelectedDocuments([newDoc]) // Replace any existing document
+      }
       
       // Focus on text input after document upload
       setTimeout(() => {
@@ -169,14 +207,14 @@ function ChatContent() {
   }
 
   const handleRemoveDocument = (index: number) => {
-    setSelectedDocuments(prev => prev.filter((_, i) => i !== index))
+    setSelectedDocuments((prev: DocumentData[]) => prev.filter((_, i: number) => i !== index))
   }
 
   // Helper to add or update a chat session in localStorage and move it to the top
-  function upsertChatSessionInHistory(session) {
+  function upsertChatSessionInHistory(session: ChatSession) {
     const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
     // Remove any existing session with the same id
-    const filtered = history.filter((s) => s.id !== session.id);
+    const filtered = history.filter((s: ChatSession) => s.id !== session.id);
     // Add updated session to the top
     filtered.unshift(session);
     localStorage.setItem('chatHistory', JSON.stringify(filtered));
@@ -199,6 +237,15 @@ function ChatContent() {
         // For other chat types, use a generic id (could be improved for multi-session)
         sessionId = 'default';
       }
+
+      // Create new message with document if present
+      const newMessage = {
+        id: Date.now().toString(),
+        content: inputValue.trim(),
+        isUser: true,
+        documents: selectedDocuments // Add documents to the message
+      }
+
       // Always upsert the session on every send
       const newSession = {
         id: sessionId,
@@ -208,12 +255,8 @@ function ChatContent() {
         type: fromSource || 'chat',
       };
       upsertChatSessionInHistory(newSession);
-      const newMessage = {
-        id: Date.now().toString(),
-        content: inputValue.trim(),
-        isUser: true
-      }
-      setMessages(prev => [...prev, newMessage])
+      
+      setMessages((prev: Message[]) => [...prev, newMessage])
       setInputValue("")
       setIsTyping(false)
       
@@ -221,6 +264,14 @@ function ChatContent() {
       if (selectedDocuments.length > 0) {
         setSelectedDocuments([])
       }
+
+      // Reset input box size
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '24px'
+      }
+      setIsAtMaxHeight(false)
+      setIsFullScreen(false)
+      setPreviousHeight('24px')
     }
   }
 
@@ -336,6 +387,21 @@ function ChatContent() {
     chatPlaceholder = "Enter your portfolio URL or share details about your work";
   }
 
+  const renderMessageDocument = (document: DocumentData) => {
+    return (
+      <div 
+        className="relative overflow-hidden rounded-xl"
+        style={{ 
+          width: '64px', 
+          height: '64px',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}
+      >
+        {renderDocumentThumbnail(document)}
+      </div>
+    )
+  }
+
   // Full-screen chat input
   if (isFullScreen) {
     return (
@@ -355,7 +421,7 @@ function ChatContent() {
           {selectedDocuments.length > 0 && (
             <div className="px-4 mb-4">
               <div className="flex gap-3 flex-wrap">
-                {selectedDocuments.map((document, index) => (
+                {selectedDocuments.map((document: DocumentData, index: number) => (
                   <div key={index} className="relative inline-block">
                     <div 
                       className="relative overflow-hidden rounded-xl"
@@ -376,7 +442,10 @@ function ChatContent() {
                         }}
                       >
                         <button
-                          onClick={() => handleRemoveDocument(index)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRemoveDocument(index)
+                          }}
                           className="flex items-center justify-center"
                         >
                           <CustomIcon name="cancel-attach" size={16} className="text-white" />
@@ -415,8 +484,8 @@ function ChatContent() {
           <div className="flex justify-between gap-2 px-4 pb-4">
             <button 
               onClick={handleAttach}
-              disabled={selectedDocuments.length >= 3}
-              className="w-10` h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
+              disabled={selectedDocuments.length >= 1}
+              className="w-10 h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
               style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
                 boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
@@ -451,10 +520,9 @@ function ChatContent() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.doc,.docx,.txt,image/*"
         onChange={handleFileSelect}
+        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
         className="hidden"
-        multiple
       />
       
       <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden">
@@ -477,30 +545,47 @@ function ChatContent() {
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              {/* Empty state - no text */}
+            <div className="h-full flex flex-col items-center" style={{ paddingTop: 'calc(50vh - 180px)' }}>
+              <h1 className="text-2xl text-white mb-2 font-playfair">
+                Need a document? Just ask.
+              </h1>
+              <p className="text-white opacity-70 font-open-sauce">
+                Our AI agent creates it instantly
+              </p>
             </div>
           ) : (
-            messages.map((message) => (
+            messages.map((message: Message) => (
               <div
                 key={message.id}
                 className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
               >
-                <div
-                  className={`max-w-[80%] p-3 rounded-2xl ${
-                    message.isUser
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-800 text-white'
-                  }`}
-                >
-                  <p>{message.content}</p>
+                <div className="max-w-[80%]">
+                  {message.isUser && message.documents && message.documents.length > 0 && (
+                    <div className="flex justify-end mb-0.5">
+                      {message.documents.map((doc, idx) => (
+                        <div key={idx}>
+                          {renderMessageDocument(doc)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {message.content && (
+                    <div 
+                      className={`rounded-3xl p-3 ${message.isUser ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white'}`}
+                      style={{
+                        wordBreak: 'break-word'
+                      }}
+                    >
+                      {message.content}
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           )}
         </div>
 
-        {/* Chat Input Area */}
+        {/* Input Area */}
         <div 
           className="p-4 "
           ref={chatInputRef}
@@ -548,7 +633,7 @@ function ChatContent() {
                     }
                   }}
                 >
-                  {selectedDocuments.map((document, index) => (
+                  {selectedDocuments.map((document: DocumentData, index: number) => (
                     <div key={index} className="relative inline-block">
                       <div 
                         className={`relative overflow-hidden ${isTyping ? 'rounded-full' : 'rounded-xl'} transition-all duration-300`}
@@ -660,7 +745,7 @@ function ChatContent() {
             <div className="flex justify-between gap-2">
               <button 
                 onClick={handleAttach}
-                disabled={selectedDocuments.length >= 3}
+                disabled={selectedDocuments.length >= 1}
                 className="w-10 h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
