@@ -50,9 +50,6 @@ function ChatContent() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatInputRef = useRef<HTMLDivElement>(null)
 
-  // Track if we've already created a session for this chat
-  const [sessionCreated, setSessionCreated] = useState(false);
-
   const ALLOWED_FILE_TYPES = {
     'application/pdf': 'pdf',
     'image/jpeg': 'jpg',
@@ -210,51 +207,14 @@ function ChatContent() {
     setSelectedDocuments((prev: DocumentData[]) => prev.filter((_, i: number) => i !== index))
   }
 
-  // Helper to add or update a chat session in localStorage and move it to the top
-  function upsertChatSessionInHistory(session: ChatSession) {
-    const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-    // Remove any existing session with the same id
-    const filtered = history.filter((s: ChatSession) => s.id !== session.id);
-    // Add updated session to the top
-    filtered.unshift(session);
-    localStorage.setItem('chatHistory', JSON.stringify(filtered));
-  }
-
   const handleSend = () => {
     if (inputValue.trim() || selectedDocuments.length > 0) {
-      let sessionId = '';
-      if ((fromSource === 'write-own' || fromSource === 'write-your-own')) {
-        // Use the same session id if already created, else new
-        if (!sessionCreated) {
-          sessionId = Date.now().toString();
-          setSessionCreated(true);
-        } else {
-          // Find the latest session id from localStorage
-          const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-          sessionId = history.length > 0 ? history[0].id : Date.now().toString();
-        }
-      } else {
-        // For other chat types, use a generic id (could be improved for multi-session)
-        sessionId = 'default';
-      }
-
-      // Create new message with document if present
       const newMessage = {
         id: Date.now().toString(),
         content: inputValue.trim(),
         isUser: true,
-        documents: selectedDocuments // Add documents to the message
+        documents: selectedDocuments
       }
-
-      // Always upsert the session on every send
-      const newSession = {
-        id: sessionId,
-        prompt: inputValue.trim() || 'Write something about yourself',
-        date: new Date().toISOString(),
-        documents: selectedDocuments,
-        type: fromSource || 'chat',
-      };
-      upsertChatSessionInHistory(newSession);
       
       setMessages((prev: Message[]) => [...prev, newMessage])
       setInputValue("")

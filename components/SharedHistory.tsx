@@ -7,43 +7,72 @@ import CustomIcon from "@/components/CustomIcon";
 import NavigationBtn from "@/components/NavigationBtn";
 import { useRouter } from "next/navigation";
 
-// Mocked history data
-const mockHistory = [
+interface Document {
+  type: string;
+  name: string;
+}
+
+interface HistoryItem {
+  id: string;
+  prompt: string;
+  date: string;
+  documents: Document[];
+  content: string[];
+}
+
+// Hardcoded history data
+const historyData: HistoryItem[] = [
   {
     id: "1",
     prompt: "Write a cover letter for a software engineer role at Google.",
-    date: "2024-06-10T10:30:00Z",
+    date: "2024-03-20T10:30:00Z",
     documents: [
-      { type: "pdf", name: "Resume2025.pdf" },
+      { type: "pdf", name: "Resume2024.pdf" },
       { type: "doc", name: "JobDesc.docx" },
       { type: "img", name: "ProfilePic.png" },
       { type: "link", name: "https://linkedin.com/in/xyz" },
       { type: "pdf", name: "ExtraDoc.pdf" },
     ],
+    content: [
+      "• 5+ years of experience in software development",
+      "• Strong background in distributed systems",
+      "• Experience with cloud platforms (AWS, GCP)",
+      "• Track record of leading technical projects",
+      "• Excellent problem-solving abilities"
+    ]
   },
   {
     id: "2",
-    prompt: "Summarize my experience for a product manager position.",
-    date: "2024-06-09T15:45:00Z",
+    prompt: "Help me research about Tesla company culture",
+    date: "2024-03-19T15:45:00Z",
     documents: [
-      { type: "doc", name: "PM_Resume.docx" },
-      { type: "pdf", name: "PM_JobDesc.pdf" },
+      { type: "doc", name: "CompanyInfo.docx" },
+      { type: "pdf", name: "TeslaCulture.pdf" },
     ],
+    content: [
+      "• Fast-paced and innovative environment",
+      "• Focus on sustainable energy",
+      "• Emphasis on direct communication",
+      "• High expectations and performance standards",
+      "• Opportunities for rapid career growth"
+    ]
   },
   {
     id: "3",
-    prompt: "Research about Tesla's company culture.",
-    date: "2024-06-08T08:20:00Z",
+    prompt: "Create a presentation about AI trends",
+    date: "2024-03-18T08:20:00Z",
     documents: [
-      { type: "link", name: "https://tesla.com/careers" },
+      { type: "link", name: "https://ai-trends.com/latest" },
+      { type: "doc", name: "AIPresentation.pptx" },
     ],
-  },
-];
-
-const coverLetterTitles = [
-  'Write a cover letter for a software engineer role at Google.',
-  'Summarize my experience for a product manager position.',
-  "Research about Tesla's company culture."
+    content: [
+      "• Rise of generative AI models",
+      "• Impact on various industries",
+      "• Ethical considerations in AI",
+      "• Future of AI in workplace",
+      "• Investment trends in AI sector"
+    ]
+  }
 ];
 
 function getFileIcon(type: string) {
@@ -80,45 +109,19 @@ export default function SharedHistory({
   type = 'home'
 }: SharedHistoryProps) {
   const router = useRouter();
-
-  // State for loaded history
-  const [history, setHistory] = useState(mockHistory);
-
-  useEffect(() => {
-    if (open) {
-      const localHistory = localStorage.getItem('chatHistory');
-      let combinedHistory = [];
-      if (localHistory) {
-        try {
-          const parsed = JSON.parse(localHistory);
-          if (Array.isArray(parsed)) {
-            // Combine local and mock, avoiding duplicates by id
-            const localIds = new Set(parsed.map((s: any) => s.id));
-            const filteredMock = mockHistory.filter((s) => !localIds.has(s.id));
-            combinedHistory = [...parsed, ...filteredMock];
-          }
-        } catch {}
-      }
-      if (combinedHistory.length > 0) {
-        setHistory(combinedHistory);
-      } else {
-        setHistory(mockHistory);
-      }
-    }
-  }, [open]);
+  const [history] = useState(historyData);
 
   const handleHistoryClick = (idx: number, sessionId?: string) => {
     if (type === 'cover-letter') {
       onSelectHistory?.(idx);
     } else {
-      // In home mode, navigate to cover letter page with session id
       router.push(`/cover-letter?id=${sessionId || idx}`);
     }
     onClose();
   };
 
   return (
-    <Sheet open={open} onOpenChange={v => !v && onClose()}>
+    <Sheet open={open} onOpenChange={(v: boolean) => !v && onClose()}>
       <SheetContent side="left" className="w-full max-w-full bg-white/5 backdrop-blur-xl border-none rounded-none shadow-2xl p-0 flex flex-col" style={{ WebkitBackdropFilter: 'blur(16px)', backdropFilter: 'blur(16px)' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-4 pb-4">
@@ -131,35 +134,34 @@ export default function SharedHistory({
             <CustomIcon name="close" size={20} className="text-[#ffffff]" />
           </NavigationBtn>
         </div>
+
         {/* History List */}
         <div className="flex-1 overflow-y-auto px-4 pb-8">
-          {history.map((session, idx) => (
+          {history.map((session: HistoryItem, idx: number) => (
             <div
-              key={session.id || idx}
-              className="mb-3 rounded-2xl p-3 flex flex-col gap-2"
+              key={session.id}
+              className="mb-3 rounded-2xl p-3 flex flex-col gap-2 hover:bg-white/10 transition-colors cursor-pointer"
               onClick={() => handleHistoryClick(idx, session.id)}
               role="button"
               tabIndex={0}
               style={{
-                cursor: 'pointer',
                 backdropFilter: 'blur(10px)',
                 WebkitBackdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 255, 255, 0.05)'
               }}
             >
               {/* Title */}
-              <a
-                href="#"
-                className="text-white text-sm font-regular mb-1"
-                style={{ cursor: 'pointer' }}
-                tabIndex={0}
-              >
-                {type === 'cover-letter' ? coverLetterTitles[idx] : session.prompt}
-              </a>
-              {/* Date below title */}
+              <div className="flex justify-between items-start">
+                <span className="text-white text-sm font-regular mb-1 flex-1">
+                  {session.prompt}
+                </span>
+              </div>
+
+              {/* Date */}
               <div className="text-white text-xs font-normal opacity-60 mt-0.5 mb-1" style={{fontSize:12}}>
                 {formatDate(session.date)}
               </div>
+
               {/* Document icons */}
               {session.documents && session.documents.length > 0 && (
                 <div className="flex items-center gap-2 mt-1">
