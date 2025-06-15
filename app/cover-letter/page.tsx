@@ -297,196 +297,137 @@ function CoverLetterPageInner() {
   }
 
   return (
-    <>
-      <div 
-        className="flex flex-col md:flex-row min-h-screen"
-        style={{
-          color: '#ffffff',
-          background: '#000000',
-          backgroundImage: 'url(/Images/bg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-        }}
-      >
-        {/* Main Container with max-width */}
-        <div className="w-full mx-auto" style={{ maxWidth: '1920px' }}>
-          <div className="flex flex-col md:flex-row min-h-screen">
-            {/* History Sidebar - Hidden on mobile, visible on desktop */}
-            <div className="hidden md:block w-[320px] xl:w-[400px] h-screen overflow-y-auto border-r border-white/10">
-              <div className="p-6">
-                <h1 className="text-2xl font-playfair mb-6">History</h1>
-                <div className="space-y-3">
-                  {/* History Items */}
-                  <div className="flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 hover:bg-white/5">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF5733] flex items-center justify-center">
-                      <CustomIcon name="file-text" size={20} className="text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-white text-sm font-medium">Resume2025.pdf</h3>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-                        <CustomIcon name="copy" size={14} className="text-white/60" />
-                      </button>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-                        <CustomIcon name="share" size={14} className="text-white/60" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-h-screen md:h-screen md:overflow-hidden">
-              {/* Header */}
-              <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-white/10">
-                <div className="container mx-auto px-4 py-4">
-                  <div className="flex items-center justify-between">
-                    {/* Mobile Menu Button - Only visible on mobile */}
-                    <button className="md:hidden w-10 h-10 flex items-center justify-center">
-                      <CustomIcon name="menu" size={24} className="text-white" />
-                    </button>
-                    
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={handleSummarise}
-                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-3xl transition-all duration-200 hover:scale-105 active:scale-95"
-                        style={{
-                          background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                          outline: '1px rgba(255, 255, 255, 0.10) solid',
-                          outlineOffset: '-1px',
-                          backdropFilter: 'blur(10.67px)',
-                        }}
-                      >
-                        <CustomIcon name="wand" size={16} className="text-white" />
-                        <span className="text-white text-sm">Summarise</span>
-                      </button>
-                      
-                      <button
-                        onClick={handlePlay}
-                        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 hover:scale-110 active:scale-90"
-                        style={{
-                          background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                        }}
-                      >
-                        <CustomIcon name="play" size={16} className="text-white" />
-                      </button>
-                      
-                      <button
-                        onClick={handleShare}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 transition-all duration-200 hover:bg-white/20"
-                      >
-                        <CustomIcon name="share" size={16} className="text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </header>
-
-              {/* Main Content */}
-              <main className="flex-1 container mx-auto px-4 py-6 md:py-8 md:px-8 overflow-y-auto">
-                <div className="max-w-4xl mx-auto">
-                  {/* Cover Letter Title */}
-                  <div className="flex justify-center mb-8">
-                    <h1 className="text-white text-2xl md:text-3xl font-playfair font-semibold">
-                      {session?.prompt || coverLetterTitles[session === dummyCoverLetters[0] ? 0 : 1]}
-                    </h1>
-                  </div>
-
-                  {/* Sections */}
-                  {Object.entries(selectedSections).map(([key, section]: [string, Section]) => (
-                    <div key={key} className="border-b border-white/5 pb-8 mb-8 last:border-b-0">
-                      <div className="flex justify-between items-center mb-4">
-                        {section.title && (
-                          <h2 className="text-white text-xl md:text-2xl font-playfair font-semibold opacity-80">
-                            {section.title}
-                          </h2>
-                        )}
-                        <button
-                          onClick={() => handleEditSection(session === dummyCoverLetters[0] ? 0 : 1, key)}
-                          className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
-                          style={{
-                            background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                            borderRadius: '20px',
-                          }}
-                        >
-                          <CustomIcon name="pencil" size={16} className="text-[#ffffff]" />
-                        </button>
-                      </div>
-                      <ul className="space-y-4">
-                        {section.bullets.map((bullet: string, index: number) => (
-                          <li key={index} className="flex items-start gap-4">
-                            <span className="text-white opacity-40 mt-1">•</span>
-                            <span className="text-white opacity-60 flex-1 text-base md:text-lg">{bullet}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </main>
-
-              {/* Bottom Navigation - Only visible on mobile */}
-              <div className="md:hidden">
-                <BottomNavigation />
-              </div>
-            </div>
-
-            {/* Right Side Panel for Desktop - Optional */}
-            <div className="hidden md:block w-[320px] xl:w-[400px] h-screen overflow-y-auto border-l border-white/10">
-              <div className="p-6">
-                <div className="rounded-3xl bg-white/5 p-6">
-                  <h2 className="text-xl font-playfair mb-4">Need a document? Just Ask</h2>
-                  <p className="text-white/60 text-sm mb-6">Our AI Agent creates it instantly</p>
-                  <textarea
-                    placeholder="Write something about yourself"
-                    className="w-full h-32 bg-black/20 rounded-2xl p-4 text-white placeholder-white/40 resize-none"
-                    style={{
-                      outline: '1px solid rgba(255, 255, 255, 0.1)',
-                    }}
-                  />
-                  <div className="flex justify-between mt-4">
-                    <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5">
-                      <CustomIcon name="paperclip" size={20} className="text-white/60" />
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5">
-                      <CustomIcon name="arrow-up" size={20} className="text-white/60" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div className="flex flex-col min-h-screen overflow-hidden cover-letter-page">
+        {/* Fixed Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-between px-4 relative">
+          {/* Progressive blur overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
+        }} />
+          {/* History Tab */}
+          <div className="relative z-10">
+            <button
+              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
+              style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
+                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                borderRadius: '44.45px',
+                outline: '1px rgba(255,255,255,0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)',
+              }}
+              onClick={() => setShowHistory(true)}
+            >
+              <CustomIcon name="history" size={20} className="text-white" />
+            </button>
           </div>
-        </div>
-      </div>
-
-      {/* Feedback Toast */}
-      {showFeedback && (
-        <div className="fixed bottom-24 md:bottom-8 left-4 right-4 z-50">
-          <div className="flex items-center justify-center">
-            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium"
+          {/* Action buttons */}
+          <div className="flex gap-3 relative z-10">
+            <button
+              className="flex items-center gap-2 px-4 py-2 transition-all duration-200 hover:scale-105 active:scale-95"
+              onClick={handleSummarise}
               style={{
                 background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                borderRadius: '44.45px',
                 outline: '1px rgba(255,255,255,0.10) solid',
                 outlineOffset: '-1px',
                 backdropFilter: 'blur(10.67px)'
               }}
             >
-              {feedbackMessage}
+              <CustomIcon name="summarise" size={20} />
+              <span>Summarise</span>
+            </button>
+          {/* <button
+              className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
+              onClick={handlePlay}
+              style={{
+                background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                borderRadius: '44.45px',
+                outline: '1px rgba(255,255,255,0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)'
+              }}
+            >
+              <CustomIcon name="play" size={20} className="text-[#ffffff]" />
+          </button> */}
+            <button
+              className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
+              onClick={handleShare}
+              style={{
+                background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                borderRadius: '44.45px',
+                outline: '1px rgba(255,255,255,0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)'
+              }}
+            >
+              <CustomIcon name="share" size={20} className="text-[#ffffff]" />
+            </button>
+          </div>
+        </header>
+        {/* Visible Content */}
+      <main className="flex-1 pt-4 pb-24 px-4">
+        <div className="w-full max-w-2xl mx-auto">
+            {/* Cover Letter Title as Link */}
+            <div className="flex justify-center mb-6">
+            <h1 className="text-white text-xl font-playfair font-semibold">
+              {session?.prompt || coverLetterTitles[session === dummyCoverLetters[0] ? 0 : 1]}
+            </h1>
+            </div>
+          {Object.entries(selectedSections).map(([key, section], idx) => {
+            const sec = section as Section;
+            return (
+              <div key={key} className="border-b border-white/5 pb-6 mb-6">
+                <div className="flex justify-between items-center mb-3">
+                  {sec.title && (
+                    <h2 className="text-white text-lg font-playfair font-semibold opacity-80">
+                      {sec.title}
+                    </h2>
+                  )}
+                  {/* Edit Button */}
+                  <button
+                    onClick={() => handleEditSection(session === dummyCoverLetters[0] ? 0 : 1, key)}
+                    className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
+                    style={{
+                      background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                      borderRadius: '20px',
+                    }}
+                  >
+                    <CustomIcon name="pencil" size={16} className="text-[#ffffff]" />
+                  </button>
+                </div>
+                <ul className="space-y-3">
+                  {sec.bullets.map((bullet: string, index: number) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="text-white opacity-60 flex-1">{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+          </div>
+        </main>
+        {/* Feedback Toast */}
+        {showFeedback && (
+          <div className="fixed bottom-24 left-4 right-4 z-50">
+            <div className="flex items-center justify-center">
+            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium" style={{
+                  background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                  outline: '1px rgba(255,255,255,0.10) solid',
+                  outlineOffset: '-1px',
+                  backdropFilter: 'blur(10.67px)'
+            }}>{feedbackMessage}</div>
             </div>
           </div>
-        </div>
-      )}
-
-      <SharedHistory 
-        open={showHistory} 
-        onClose={() => setShowHistory(false)} 
-        type="cover-letter"
-      />
-    </>
+        )}
+      {/* Bottom Navigation outside transformed container */}
+      <BottomNavigation />
+      <SharedHistory open={showHistory} onClose={() => setShowHistory(false)} type="cover-letter" />
+    </div>
   )
 }
 

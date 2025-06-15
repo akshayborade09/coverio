@@ -45,7 +45,9 @@ function ChatContent() {
   const [showErrorToast, setShowErrorToast] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [viewportHeight, setViewportHeight] = useState(0)
   
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatInputRef = useRef<HTMLDivElement>(null)
@@ -131,6 +133,50 @@ function ChatContent() {
     }
   }, [fromSource])
 
+  useEffect(() => {
+    // Update viewport height on mount and resize
+    const updateHeight = () => {
+      setViewportHeight(window.innerHeight);
+    };
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
+
+  // Handle keyboard visibility
+  useEffect(() => {
+    const handleFocus = () => {
+      setIsKeyboardVisible(true);
+    };
+
+    const handleBlur = () => {
+      setIsKeyboardVisible(false);
+    };
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.addEventListener('focus', handleFocus);
+      textarea.addEventListener('blur', handleBlur);
+    }
+
+    return () => {
+      if (textarea) {
+        textarea.removeEventListener('focus', handleFocus);
+        textarea.removeEventListener('blur', handleBlur);
+      }
+    };
+  }, []);
+
+  // Scroll to bottom whenever messages update
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      })
+    }
+  }, [messages])
+
   const handleBack = () => {
     router.push('/')
   }
@@ -171,30 +217,30 @@ function ChatContent() {
         return
       }
 
-      // Create thumbnail for image files
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
+        // Create thumbnail for image files
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader()
+          reader.onload = (e) => {
           const newDoc: DocumentData = {
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              file: file,
+              thumbnailUrl: e.target?.result as string
+            }
+          setSelectedDocuments([newDoc]) // Replace any existing document
+          }
+          reader.readAsDataURL(file)
+        } else {
+          // For non-image files (PDF, DOC, etc.)
+        const newDoc: DocumentData = {
             name: file.name,
             size: file.size,
             type: file.type,
-            file: file,
-            thumbnailUrl: e.target?.result as string
+            file: file
           }
-          setSelectedDocuments([newDoc]) // Replace any existing document
-        }
-        reader.readAsDataURL(file)
-      } else {
-        // For non-image files (PDF, DOC, etc.)
-        const newDoc: DocumentData = {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          file: file
-        }
         setSelectedDocuments([newDoc]) // Replace any existing document
-      }
+        }
       
       // Focus on text input after document upload
       setTimeout(() => {
@@ -207,31 +253,65 @@ function ChatContent() {
     setSelectedDocuments((prev: DocumentData[]) => prev.filter((_, i: number) => i !== index))
   }
 
-  const handleSend = () => {
-    if (inputValue.trim() || selectedDocuments.length > 0) {
-      const newMessage = {
-        id: Date.now().toString(),
-        content: inputValue.trim(),
-        isUser: true,
-        documents: selectedDocuments
-      }
-      
-      setMessages((prev: Message[]) => [...prev, newMessage])
-      setInputValue("")
-      setIsTyping(false)
-      
-      // Remove documents after sending
-      if (selectedDocuments.length > 0) {
-        setSelectedDocuments([])
-      }
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Allow sending if either there's text or documents
+    if (!inputValue.trim() && selectedDocuments.length === 0) return
 
-      // Reset input box size
-      if (textareaRef.current) {
-        textareaRef.current.style.height = '24px'
+    const newMessage = {
+      id: Date.now().toString(),
+      content: inputValue.trim(),
+      isUser: true,
+      documents: selectedDocuments
+    }
+    
+    setMessages([...messages, newMessage])
+    setInputValue("")
+    setIsTyping(false)
+
+    // Remove documents after sending
+    if (selectedDocuments.length > 0) {
+      setSelectedDocuments([])
+    }
+
+    // Reset input box size
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '24px'
+    }
+    setIsAtMaxHeight(false)
+    setIsFullScreen(false)
+    setPreviousHeight('24px')
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: inputValue.trim(),
+          documents: selectedDocuments
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to send message')
       }
-      setIsAtMaxHeight(false)
-      setIsFullScreen(false)
-      setPreviousHeight('24px')
+    } catch (error) {
+      console.error("Error sending message:", error)
+      setErrorMessage("Failed to send message. Please try again.")
+      setShowErrorToast(true)
+      setTimeout(() => setShowErrorToast(false), 3000)
+    }
+  }
+
+  const handleQuickPrompt = (prompt: string) => {
+    setInputValue(prompt)
+    // Optionally focus the input
+    const inputElement = document.querySelector('input[type="text"]') as HTMLInputElement
+    if (inputElement) {
+      inputElement.focus()
     }
   }
 
@@ -362,118 +442,6 @@ function ChatContent() {
     )
   }
 
-  // Full-screen chat input
-  if (isFullScreen) {
-    return (
-      <div className="fixed inset-0 z-50">
-        <div className="flex flex-col h-full">
-          {/* Collapse button */}
-          <div className="flex justify-end items-center p-4">
-            <button 
-              onClick={handleCollapseClick}
-              className="text-white opacity-60 hover:opacity-100 transition-opacity"
-            >
-              <CustomIcon name="collapse" size={24} />
-            </button>
-          </div>
-          
-          {/* Document Preview at top - Full size */}
-          {selectedDocuments.length > 0 && (
-            <div className="px-4 mb-4">
-              <div className="flex gap-3 flex-wrap">
-                {selectedDocuments.map((document: DocumentData, index: number) => (
-                  <div key={index} className="relative inline-block">
-                    <div 
-                      className="relative overflow-hidden rounded-xl"
-                      style={{ 
-                        width: '64px', 
-                        height: '64px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}
-                    >
-                      {renderDocumentThumbnail(document)}
-                      
-                      {/* Cancel button */}
-                      <div 
-                        className="absolute top-0 right-0"
-                        style={{ 
-                          zIndex: 10,
-                          padding: '2px'
-                        }}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleRemoveDocument(index)
-                          }}
-                          className="flex items-center justify-center"
-                        >
-                          <CustomIcon name="cancel-attach" size={16} className="text-white" />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* File info below thumbnail */}
-                    <div className="mt-2 max-w-[64px]">
-                      <div className="text-xs text-white opacity-60 text-center leading-tight truncate">
-                        {document.name}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Expandable textarea area */}
-          <div className="flex-1 px-4 mb-3">
-            <textarea
-              ref={textareaRef}
-              placeholder={chatPlaceholder}
-              className="bg-transparent border-none outline-none w-full h-full text-white text-base font-sans font-normal leading-6 placeholder:text-white placeholder:opacity-40 resize-none"
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value)
-                // Update typing state based on input content
-                setIsTyping(e.target.value.trim().length > 0)
-              }}
-            />
-          </div>
-          
-          {/* Attach and Send buttons */}
-          <div className="flex justify-between gap-2 px-4 pb-4">
-            <button 
-              onClick={handleAttach}
-              disabled={selectedDocuments.length >= 1}
-              className="w-10 h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-            >
-              <CustomIcon name="attach" size={24} className="text-white" />
-            </button>
-            <button 
-              onClick={handleSend}
-              disabled={!inputValue.trim() && selectedDocuments.length === 0}
-              className="w-10 h-10 p-3 rounded-full flex justify-center items-center gap-1.5 disabled:opacity-50"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-            >
-              <CustomIcon name="send" size={24} className="text-white" />
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <>
       {/* Hidden file input */}
@@ -485,80 +453,115 @@ function ChatContent() {
         className="hidden"
       />
       
-      <div className="flex flex-col h-screen text-[#ffffff] relative overflow-hidden">
-        {/* Header with Back Button */}
-        <div className="flex items-center">
-          <button 
-            onClick={handleBack}
-            className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 m-4"
-            style={{
-              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
-              boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-              borderRadius: '44.45px',
-              backdropFilter: 'blur(10.67px)',
-            }}
-          >
-            <CustomIcon name="back" size={20} className="text-white" />
-          </button>
+      {/* Fixed Background */}
+      <div 
+        className="fixed inset-0"
+        style={{
+          background: 'linear-gradient(180deg, #1A1A1A 0%, #2D2D2D 100%)',
+          zIndex: 0
+        }}
+      />
+      
+      <div className="flex flex-col h-[100dvh] text-[#ffffff] relative overflow-hidden">
+        {/* Fixed Header */}
+        <div 
+          className="fixed top-0 left-0 right-0 z-20"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(26, 26, 26, 0.95) 0%, rgba(45, 45, 45, 0.85) 100%)',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          <div className="flex items-center">
+            <button
+              onClick={handleBack}
+              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5 m-4"
+              style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
+                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+                borderRadius: '44.45px',
+                backdropFilter: 'blur(10.67px)',
+              }}
+            >
+              <CustomIcon name="back" size={20} className="text-white" />
+            </button>
+          </div>
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center" style={{ paddingTop: 'calc(50vh - 180px)' }}>
-              <h1 className="text-2xl text-white mb-2 font-playfair">
-                Need a document? Just ask.
-              </h1>
-              <p className="text-white opacity-70 font-open-sauce">
-                Our AI agent creates it instantly
-              </p>
-            </div>
-          ) : (
-            messages.map((message: Message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className="max-w-[80%]">
-                  {message.isUser && message.documents && message.documents.length > 0 && (
-                    <div className="flex justify-end mb-0.5">
-                      {message.documents.map((doc, idx) => (
-                        <div key={idx}>
-                          {renderMessageDocument(doc)}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {message.content && (
-                    <div 
-                      className={`rounded-3xl p-3 ${message.isUser ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white'}`}
-                      style={{
-                        wordBreak: 'break-word'
-                      }}
-                    >
-                      {message.content}
-                    </div>
-                  )}
+        {/* Spacer for fixed header */}
+        <div className="h-[72px]" />
+
+        {/* Empty State Content - Fixed in viewport */}
+        {messages.length === 0 && (
+          <div 
+            className="fixed inset-x-0 z-10"
+            style={{
+              top: '120px',
+              bottom: '120px', // Above input
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+              transition: 'top 0.3s ease-out'
+            }}
+          >
+            <h1 className="text-2xl text-white mb-2 font-playfair text-center">
+              Need a document? Just ask.
+            </h1>
+            <p className="text-white opacity-70 font-open-sauce text-center">
+              Our AI agent creates it instantly
+            </p>
+          </div>
+        )}
+
+        {/* Scrollable Content Area */}
+        <div
+          className="flex-1 overflow-y-auto relative z-10"
+          ref={messagesContainerRef}
+        >
+          {/* Messages Area */}
+          {messages.length > 0 && (
+            <div className="px-4 py-4 space-y-4">
+              {messages.map((message: Message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className="max-w-[80%]">
+                    {message.isUser && message.documents && message.documents.length > 0 && (
+                      <div className="flex justify-end mb-2">
+                        {message.documents.map((doc, idx) => (
+                          <div key={idx}>
+                            {renderMessageDocument(doc)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {message.content && (
+                      <div 
+                        className={`rounded-3xl p-3 text-sm ${message.isUser ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white'}`}
+                        style={{
+                          wordBreak: 'break-word'
+                        }}
+                      >
+                        {message.content}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+              {/* Sentinel div to keep scroll anchor at the bottom */}
+              <div style={{ height: '1px' }} />
+            </div>
           )}
         </div>
 
-        {/* Input Area */}
+        {/* Fixed Input Area */}
         <div 
-          className="p-4 "
+          className="flex-none p-4 relative z-10"
           ref={chatInputRef}
           style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            transform: isKeyboardVisible ? 'translateY(-20px)' : 'translateY(0)',
-            transition: 'transform 0.3s ease-out',
-            zIndex: 50
+            background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.1) 80%, rgba(0, 0, 0, 0) 100%)',
           }}
         >
           <div 
@@ -628,9 +631,9 @@ function ChatContent() {
                       </div>
                       
                       {/* File info below thumbnail - hide when typing */}
-                                              {!isTyping && (
-                          <div className="mt-2 max-w-[64px]">
-                            <div className="text-xs text-white opacity-60 text-center leading-tight truncate">
+                      {!isTyping && (
+                        <div className="mt-2 max-w-[64px]">
+                          <div className="text-xs text-white opacity-60 text-center leading-tight truncate">
                             {document.name}
                           </div>
                         </div>
@@ -650,11 +653,9 @@ function ChatContent() {
                 value={inputValue}
                 onChange={(e) => {
                   setInputValue(e.target.value)
-                  // Update typing state based on input content
                   setIsTyping(e.target.value.trim().length > 0)
                 }}
                 onFocus={() => {
-                  // Additional mobile keyboard handling on focus
                   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
                   if (isMobile) {
                     setTimeout(() => {
@@ -662,7 +663,7 @@ function ChatContent() {
                         behavior: 'smooth', 
                         block: 'end' 
                       })
-                    }, 300) // Delay for keyboard animation
+                    }, 300)
                   }
                 }}
                 onInput={(e) => {
@@ -692,7 +693,7 @@ function ChatContent() {
             {/* Expand icon */}
             {isAtMaxHeight && (
               <div className="absolute top-4 right-4">
-                <button 
+                <button
                   onClick={handleExpandClick}
                   className="text-white opacity-60 hover:opacity-100 transition-opacity"
                 >

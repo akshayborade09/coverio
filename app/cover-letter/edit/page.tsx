@@ -235,6 +235,17 @@ function EditPageContent() {
     }
   }, [coverLetterId, sectionKey])
 
+  // Auto-resize bullet textareas on mount and when bullet content changes
+  useEffect(() => {
+    editContent.bullets.forEach((_, idx) => {
+      const textarea = bulletRefs.current[idx];
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+    });
+  }, [editContent.bullets]);
+
   // Cleanup animation frame on unmount
   useEffect(() => {
     return () => {
@@ -295,8 +306,8 @@ function EditPageContent() {
   const handleDeleteBullet = (index: number) => {
     // Only show confirmation toast for non-empty bullet points
     if (editContent.bullets[index].trim() !== '') {
-      setBulletToDelete(index)
-      setShowDeleteToast(true)
+    setBulletToDelete(index)
+    setShowDeleteToast(true)
     } else {
       // Directly delete empty bullet points
       const newBullets = editContent.bullets.filter((_: string, i: number) => i !== index)
@@ -383,349 +394,272 @@ function EditPageContent() {
   }
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>, index: number) => {
-    const newValue = e.target.value
-    const newBullets = [...editContent.bullets]
-    
-    if (newValue === '' && editContent.bullets.length > 1) {
-      // First deletion: Clear content but keep bullet, show placeholder
-      if (editContent.bullets[index] !== '') {
-        newBullets[index] = ''
+                    const newValue = e.target.value
+                    const newBullets = [...editContent.bullets]
+                    
+                    if (newValue === '' && editContent.bullets.length > 1) {
+                      // First deletion: Clear content but keep bullet, show placeholder
+                      if (editContent.bullets[index] !== '') {
+                        newBullets[index] = ''
         setEditContent((prev: EditContent) => ({ ...prev, bullets: newBullets }))
-        // Keep cursor at the end of the now-empty field
-        setTimeout(() => {
-          if (bulletRefs.current[index]) {
-            bulletRefs.current[index]?.focus()
-            const textarea = bulletRefs.current[index]
-            if (textarea) {
-              textarea.setSelectionRange(0, 0)
-            }
-          }
-        }, 0)
-      } else {
+                        // Keep cursor at the end of the now-empty field
+                        setTimeout(() => {
+                          if (bulletRefs.current[index]) {
+                            bulletRefs.current[index]?.focus()
+                            const textarea = bulletRefs.current[index]
+                            if (textarea) {
+                              textarea.setSelectionRange(0, 0)
+                            }
+                          }
+                        }, 0)
+                      } else {
         // Second deletion: Actually remove the empty bullet - no toast needed
-        newBullets.splice(index, 1)
-        if (draggedBullet === index) {
-          resetDrag()
-        }
+                        newBullets.splice(index, 1)
+                        if (draggedBullet === index) {
+                          resetDrag()
+                        }
         setEditContent((prev: EditContent) => ({ ...prev, bullets: newBullets }))
-        
-        // Focus on the last bullet point
-        const focusIndex = newBullets.length - 1
-        setTimeout(() => {
-          if (bulletRefs.current[focusIndex]) {
-            bulletRefs.current[focusIndex]?.focus()
-            // Move cursor to end
-            const textarea = bulletRefs.current[focusIndex]
-            if (textarea) {
-              textarea.setSelectionRange(textarea.value.length, textarea.value.length)
-            }
-          }
-        }, 50)
-      }
-    } else {
-      // Update the bullet content
-      newBullets[index] = newValue
+                        
+                        // Focus on the last bullet point
+                        const focusIndex = newBullets.length - 1
+                        setTimeout(() => {
+                          if (bulletRefs.current[focusIndex]) {
+                            bulletRefs.current[focusIndex]?.focus()
+                            // Move cursor to end
+                            const textarea = bulletRefs.current[focusIndex]
+                            if (textarea) {
+                              textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+                            }
+                          }
+                        }, 50)
+                      }
+                    } else {
+                      // Update the bullet content
+                      newBullets[index] = newValue
       setEditContent((prev: EditContent) => ({ ...prev, bullets: newBullets }))
-    }
-    
-    // Auto-resize after state update
-    setTimeout(() => {
-      if (e.target) {
-        e.target.style.height = 'auto';
-        e.target.style.height = e.target.scrollHeight + 'px';
-      }
-    }, 0);
+                    }
+                    
+                    // Auto-resize after state update
+                    setTimeout(() => {
+                      if (e.target) {
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                      }
+                    }, 0);
   }
 
   const handleFocus = (e: FocusEvent<HTMLTextAreaElement>, index: number) => {
-    setIsInputFocused(true)
-    focusBulletPoint(index)
-    // Reset drag when focusing
-    resetDrag()
+                    setIsInputFocused(true)
+                    focusBulletPoint(index)
+                    // Reset drag when focusing
+                    resetDrag()
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>, index: number, bullet: string) => {
     // Handle backspace on empty bullet point - no toast needed
-    if (e.key === 'Backspace' && bullet === '' && editContent.bullets.length > 1) {
-      e.preventDefault()
-      const newBullets = [...editContent.bullets]
-      newBullets.splice(index, 1)
-      if (draggedBullet === index) {
-        resetDrag()
-      }
-      setEditContent((prev: EditContent) => ({ ...prev, bullets: newBullets }))
-      
-      // Focus on the last bullet point
-      const focusIndex = newBullets.length - 1
-      setTimeout(() => {
-        if (bulletRefs.current[focusIndex]) {
-          bulletRefs.current[focusIndex]?.focus()
-          // Move cursor to end
-          const textarea = bulletRefs.current[focusIndex]
-          if (textarea) {
-            textarea.setSelectionRange(textarea.value.length, textarea.value.length)
-          }
-        }
-      }, 50)
-    }
-    
-    // Handle Enter key to add new bullet point
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      const newBullets = [...editContent.bullets]
-      // Insert new empty bullet after current index
-      newBullets.splice(index + 1, 0, '')
-      setEditContent((prev: EditContent) => ({ ...prev, bullets: newBullets }))
-      
-      // Focus on new bullet point
-      setTimeout(() => {
-        if (bulletRefs.current[index + 1]) {
-          bulletRefs.current[index + 1]?.focus()
-          const textarea = bulletRefs.current[index + 1]
-          if (textarea) {
-            textarea.setSelectionRange(0, 0)
-          }
-        }
-      }, 50)
-    }
-  }
-
-  return (
-    <div 
-      className="flex flex-col md:flex-row min-h-screen"
-      style={{
-        color: '#ffffff',
-        background: '#000000',
-        backgroundImage: 'url(/Images/bg.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-      }}
-    >
-      {/* Main Container with max-width */}
-      <div className="w-full mx-auto" style={{ maxWidth: '1920px' }}>
-        <div className="flex flex-col md:flex-row min-h-screen">
-          {/* History Sidebar - Hidden on mobile, visible on desktop */}
-          <div className="hidden md:block w-[320px] xl:w-[400px] h-screen overflow-y-auto border-r border-white/10">
-            <div className="p-6">
-              <h1 className="text-2xl font-playfair mb-6">History</h1>
-              <div className="space-y-3">
-                {/* History Items */}
-                <div className="flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 hover:bg-white/5">
-                  <div className="w-10 h-10 rounded-xl bg-[#FF5733] flex items-center justify-center">
-                    <CustomIcon name="file-text" size={20} className="text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-white text-sm font-medium">Resume2025.pdf</h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-                      <CustomIcon name="copy" size={14} className="text-white/60" />
-                    </button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-                      <CustomIcon name="share" size={14} className="text-white/60" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col min-h-screen md:h-screen md:overflow-hidden">
-            {/* Fixed Header */}
-            <div className="sticky top-0 z-50 backdrop-blur-xl border-b border-white/10">
-              <div className="container mx-auto px-4 py-4">
-                <div className="flex items-center justify-between">
-                  {/* Mobile Menu Button - Only visible on mobile */}
-                  <button className="md:hidden w-10 h-10 flex items-center justify-center">
-                    <CustomIcon name="menu" size={24} className="text-white" />
-                  </button>
-
-                  {/* Title Input */}
-                  <input 
-                    type="text"
-                    value={editContent.title}
-                    onChange={(e) => setEditContent(prev => ({ ...prev, title: e.target.value }))}
-                    className="flex-1 bg-transparent text-white font-serif border-none outline-none opacity-80 placeholder-gray-400 text-xl md:text-2xl"
-                    placeholder="Section title"
-                  />
-                  
-                  {/* Save Button */}
-                  <button 
-                    onClick={handleSave}
-                    className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90"
-                    style={{
-                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                      borderRadius: '20px',
-                    }}
-                  >
-                    <CustomIcon name="check" size={20} className="text-white" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 container mx-auto px-4 py-6 md:py-8 md:px-8 overflow-y-auto">
-              <div className="max-w-4xl mx-auto">
-                {/* Bullet Points */}
-                <div className="space-y-4">
-                  {editContent.bullets.map((bullet, index) => (
-                    <div
-                      key={index}
-                      className={`relative flex items-start gap-4 ${
-                        isDragging && draggedBullet === index ? 'opacity-50' : ''
-                      }`}
-                      style={
-                        isDragging && draggedBullet === index
-                          ? {
-                              position: 'fixed',
-                              top: draggedBulletPosition.top + dragOffset,
-                              height: draggedBulletPosition.height,
-                              zIndex: 1000,
-                              width: 'calc(100% - 2rem)',
-                              maxWidth: '64rem',
-                              padding: '0.5rem',
-                              background: 'rgba(0, 0, 0, 0.8)',
-                              borderRadius: '1rem',
-                              backdropFilter: 'blur(10px)',
-                            }
-                          : {}
+                    if (e.key === 'Backspace' && bullet === '' && editContent.bullets.length > 1) {
+                      e.preventDefault()
+                      const newBullets = [...editContent.bullets]
+                      newBullets.splice(index, 1)
+                      if (draggedBullet === index) {
+                        resetDrag()
                       }
-                    >
-                      <span className="text-white opacity-40 mt-3">•</span>
-                      <div className="flex-1 relative">
-                        <textarea
-                          ref={(el) => (bulletRefs.current[index] = el)}
-                          value={bullet}
-                          onChange={(e) => handleChange(e, index)}
-                          onKeyDown={(e) => handleKeyDown(e, index, bullet)}
-                          onFocus={() => handleFocus(index)}
-                          className="w-full bg-transparent text-white opacity-60 resize-none outline-none text-base md:text-lg"
-                          style={{ minHeight: '2rem' }}
-                          rows={1}
-                        />
-                        {/* Delete button */}
-                        <button
-                          onClick={() => handleDeleteBullet(index)}
-                          className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
-                        >
-                          <CustomIcon name="trash" size={14} className="text-white/60" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add New Bullet Button */}
-                <div className="mt-4">
-                  <button
-                    onClick={() => {
-                      const newBullets = [...editContent.bullets, '']
-                      setEditContent(prev => ({ ...prev, bullets: newBullets }))
-                      // Focus on new bullet point
+      setEditContent((prev: EditContent) => ({ ...prev, bullets: newBullets }))
+                      
+                      // Focus on the last bullet point
+                      const focusIndex = newBullets.length - 1
                       setTimeout(() => {
-                        const newIndex = newBullets.length - 1
-                        if (bulletRefs.current[newIndex]) {
-                          bulletRefs.current[newIndex]?.focus()
-                          const textarea = bulletRefs.current[newIndex]
+                        if (bulletRefs.current[focusIndex]) {
+                          bulletRefs.current[focusIndex]?.focus()
+                          // Move cursor to end
+                          const textarea = bulletRefs.current[focusIndex]
+                          if (textarea) {
+                            textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+                          }
+                        }
+                      }, 50)
+                    }
+                    
+                    // Handle Enter key to add new bullet point
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const newBullets = [...editContent.bullets]
+                      // Insert new empty bullet after current index
+                      newBullets.splice(index + 1, 0, '')
+      setEditContent((prev: EditContent) => ({ ...prev, bullets: newBullets }))
+                      
+      // Focus on new bullet point
+                      setTimeout(() => {
+                        if (bulletRefs.current[index + 1]) {
+                          bulletRefs.current[index + 1]?.focus()
+                          const textarea = bulletRefs.current[index + 1]
                           if (textarea) {
                             textarea.setSelectionRange(0, 0)
                           }
                         }
                       }, 50)
-                    }}
-                    className="flex items-center justify-center gap-1 px-3 py-3 rounded-3xl transition-all duration-200 hover:scale-105 active:scale-95"
-                    style={{
-                      background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
-                      outline: '1px rgba(255, 255, 255, 0.10) solid',
-                      outlineOffset: '-1px',
-                      backdropFilter: 'blur(10.67px)',
-                    }}
-                  >
-                    <CustomIcon name="plus" size={16} className="text-white" />
-                    <span className="text-white text-sm">Add bullet point</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                    }
+  }
 
-          {/* Right Side Panel for Desktop - Optional */}
-          <div className="hidden md:block w-[320px] xl:w-[400px] h-screen overflow-y-auto border-l border-white/10">
-            <div className="p-6">
-              <div className="rounded-3xl bg-white/5 p-6">
-                <h2 className="text-xl font-playfair mb-4">Need a document? Just Ask</h2>
-                <p className="text-white/60 text-sm mb-6">Our AI Agent creates it instantly</p>
-                <textarea
-                  placeholder="Write something about yourself"
-                  className="w-full h-32 bg-black/20 rounded-2xl p-4 text-white placeholder-white/40 resize-none"
+  return (
+    <div className="edit-page min-h-screen" style={{
+      color: '#ffffff',
+      background: '#000000',
+      backgroundImage: 'url(/Images/bg.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+    }}>
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-between px-4 relative">
+        {/* Progressive blur overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
+        }} />
+        {/* Header Content */}
+        <div className="flex items-center justify-between gap-1 w-full relative z-10">
+          <div className="flex-1 flex justify-center">
+            <input type="text" value={editContent.title} onChange={e => setEditContent(prev => ({ ...prev, title: e.target.value }))} className="bg-transparent text-white font-serif border-none outline-none opacity-80 placeholder-gray-400" placeholder="Section title" style={{ fontSize: '20px', width: '100%' }} />
+          </div>
+          <button onClick={handleSave} className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90 ml-2" style={{
+            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+            borderRadius: '20px',
+          }}>
+            <CustomIcon name="check" size={16} className="text-[#ffffff]" />
+          </button>
+          <button onClick={handleClose} className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-90 ml-2" style={{
+            background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+            borderRadius: '20px',
+          }}>
+            <CustomIcon name="close" size={16} className="text-[#ffffff]" />
+          </button>
+        </div>
+      </header>
+      {/* Content Area */}
+      <div className="pt-4 px-4 pb-8 max-w-2xl mx-auto">
+        <div className="space-y-2">
+          {editContent.bullets.map((bullet, index) => (
+            <div key={index} className="relative group" style={{ minHeight: '48px' }}>
+              {/* Delete Button - Always on the right, vertically centered, revealed on slide */}
+              {editContent.bullets.length > 1 && (
+                <button
+                  onClick={() => handleDeleteBullet(index)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-full transition-all duration-200 z-10"
                   style={{
-                    outline: '1px solid rgba(255, 255, 255, 0.1)',
+                    opacity: draggedBullet === index && dragOffset < -20 ? 1 : 0,
+                    pointerEvents: draggedBullet === index && dragOffset < -20 ? 'auto' : 'none',
+                    transition: 'opacity 0.2s ease-out',
+                  }}
+                >
+                  <CustomIcon name="trash" size={20} className="text-white" />
+                </button>
+              )}
+              <div
+                className="flex items-start pr-12"
+                style={{
+                  transform: draggedBullet === index ? `translateX(${dragOffset}px)` : 'translateX(0px)',
+                  backgroundColor: (draggedBullet === index && dragOffset !== 0) ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                  borderRadius: (draggedBullet === index && dragOffset !== 0) ? '16px' : '0px',
+                  padding: '12px 8px 8px 0px',
+                  transition: isDragging 
+                    ? 'background-color 0.2s ease-out, border-radius 0.2s ease-out' 
+                    : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.2s ease-out, border-radius 0.2s ease-out',
+                  willChange: isDragging ? 'transform' : 'auto'
+                }}
+                onTouchStart={e => { e.stopPropagation(); handleDragStart(e, index); }}
+                onMouseDown={e => { e.stopPropagation(); handleDragStart(e, index); }}
+                onTouchMove={e => { e.stopPropagation(); handleDragMove(e); }}
+                onMouseMove={isDragging ? e => { e.stopPropagation(); handleDragMove(e); } : undefined}
+                onTouchEnd={e => { e.stopPropagation(); handleDragEnd(); }}
+                onMouseUp={e => { e.stopPropagation(); handleDragEnd(); }}
+                onMouseLeave={handleDragEnd}
+              >
+                <textarea
+                  ref={el => { bulletRefs.current[index] = el; }}
+                  value={bullet}
+                  onChange={e => handleChange(e, index)}
+                  onKeyDown={e => handleKeyDown(e, index, bullet)}
+                  onFocus={e => handleFocus(e, index)}
+                  className="w-full bg-transparent text-white resize-none border-none outline-none leading-relaxed"
+                  style={{ fontSize: '16px', lineHeight: '1.6', wordWrap: 'break-word', whiteSpace: 'pre-wrap', minHeight: '24px', opacity: '0.6', touchAction: 'manipulation', overflow: 'hidden' }}
+                  placeholder={bullet === '' ? 'Bullet point' : 'Enter bullet point...'}
+                  rows={1}
+                  onInput={e => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = target.scrollHeight + 'px';
                   }}
                 />
-                <div className="flex justify-between mt-4">
-                  <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5">
-                    <CustomIcon name="paperclip" size={20} className="text-white/60" />
-                  </button>
-                  <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5">
-                    <CustomIcon name="arrow-up" size={20} className="text-white/60" />
-                  </button>
-                </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
+        {/* Add New Bullet Button */}
+        <button
+          onClick={() => {
+            const newBullets = [...editContent.bullets, '']
+            setEditContent(prev => ({ ...prev, bullets: newBullets }))
+            setTimeout(() => {
+              const newIndex = newBullets.length - 1
+              if (bulletRefs.current[newIndex]) {
+                bulletRefs.current[newIndex]?.focus()
+                const textarea = bulletRefs.current[newIndex]
+                if (textarea) {
+                  textarea.setSelectionRange(0, 0)
+                }
+              }
+            }, 50)
+          }}
+          className="mt-6 flex items-center gap-2 px-3 py-3 rounded-3xl transition-all duration-200 hover:scale-105 active:scale-95"
+          style={{
+            background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+            outline: '1px rgba(255,255,255,0.10) solid',
+            outlineOffset: '-1px',
+            backdropFilter: 'blur(10.67px)',
+          }}
+        >
+          <CustomIcon name="plus" size={16} className="text-white" />
+          <span className="text-white text-sm">Add bullet point</span>
+        </button>
       </div>
-
       {/* Feedback Toast */}
       {showFeedback && (
-        <div className="fixed bottom-24 md:bottom-8 left-4 right-4 z-50">
+        <div className="fixed bottom-4 left-4 right-4 z-50">
           <div className="flex items-center justify-center">
-            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
-                outline: '1px rgba(255,255,255,0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)'
-              }}
-            >
-              {feedbackMessage}
-            </div>
+            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium" style={{
+              background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+              boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+              outline: '1px rgba(255, 255, 255, 0.10) solid',
+              outlineOffset: '-1px',
+              backdropFilter: 'blur(10.67px)',
+            }}>{feedbackMessage}</div>
           </div>
         </div>
       )}
-
       {/* Delete Confirmation Toast */}
       {showDeleteToast && (
-        <div className="fixed bottom-24 md:bottom-8 left-4 right-4 z-50">
-          <div className="flex items-center justify-center gap-4">
-            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium bg-red-500/20 backdrop-blur">
-              Delete this bullet point?
+        <div className="fixed bottom-20 left-4 right-4 z-10">
+          <div className="flex items-center justify-between gap-3 px-3 py-3 rounded-full" style={{
+            background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+            boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
+            outline: '1px rgba(255, 255, 255, 0.10) solid',
+            outlineOffset: '-1px',
+            backdropFilter: 'blur(10.67px)',
+          }}>
+            <span className="text-white text-sm font-medium flex-1">Delete the bullet point?</span>
+            <div className="flex items-center gap-2">
+              <button onClick={confirmDeleteBullet} className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full transition-colors">Confirm</button>
+              <button onClick={cancelDeleteBullet} className="w-8 h-8 flex items-center justify-center text-white opacity-70 hover:opacity-100 transition-opacity" style={{
+                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
+                borderRadius: '20px',
+              }}>
+                <CustomIcon name="close" size={14} />
+              </button>
             </div>
-            <button
-              onClick={() => {
-                const newBullets = editContent.bullets.filter((_, i) => i !== bulletToDelete)
-                setEditContent(prev => ({ ...prev, bullets: newBullets }))
-                setShowDeleteToast(false)
-                setBulletToDelete(null)
-                resetDrag()
-              }}
-              className="px-4 py-2 rounded-xl text-white text-sm font-medium bg-red-500 hover:bg-red-600 transition-colors"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => {
-                setShowDeleteToast(false)
-                setBulletToDelete(null)
-              }}
-              className="px-4 py-2 rounded-xl text-white text-sm font-medium bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              Cancel
-            </button>
           </div>
         </div>
       )}

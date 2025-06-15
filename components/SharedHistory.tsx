@@ -39,7 +39,7 @@ const historyData: HistoryItem[] = [
       "• Experience with cloud platforms (AWS, GCP)",
       "• Track record of leading technical projects",
       "• Excellent problem-solving abilities"
-    ]
+        ]
   },
   {
     id: "2",
@@ -55,7 +55,7 @@ const historyData: HistoryItem[] = [
       "• Emphasis on direct communication",
       "• High expectations and performance standards",
       "• Opportunities for rapid career growth"
-    ]
+        ]
   },
   {
     id: "3",
