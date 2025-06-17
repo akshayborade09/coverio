@@ -95,6 +95,7 @@ const coverLetterTitles = [
 function CoverLetterPageInner() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
+  const [showToast, setShowToast] = useState(false)
   const contentRef = useRef<HTMLElement | null>(null)
   const pdfContentRef = useRef<HTMLDivElement | null>(null)
   const [showHistory, setShowHistory] = useState(false)
@@ -106,6 +107,8 @@ function CoverLetterPageInner() {
   const [showDocumentPreview, setShowDocumentPreview] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<{ type: string; name: string } | null>(null)
   const [showDocsModal, setShowDocsModal] = useState(false)
+  const [showEditSavedToast, setShowEditSavedToast] = useState(false)
+  const [toastVisible, setToastVisible] = useState(false)
 
   const handleBack = () => {
     // Go back to homepage and open history drawer
@@ -164,6 +167,28 @@ function CoverLetterPageInner() {
     window.addEventListener('resize', checkScrollable)
     return () => window.removeEventListener('resize', checkScrollable)
   }, [sessionId])
+
+  // Add useEffect to check for toast state in localStorage
+  useEffect(() => {
+    const showUpdateToast = localStorage.getItem('showUpdateToast')
+    if (showUpdateToast === 'true') {
+      setShowToast(true)
+      localStorage.removeItem('showUpdateToast')
+      setTimeout(() => setShowToast(false), 2000)
+    }
+  }, [])
+
+  // Add useEffect to check for edit saved toast state in localStorage
+  useEffect(() => {
+    const showEditSavedToastFlag = localStorage.getItem('showEditSavedToast')
+    if (showEditSavedToastFlag === 'true') {
+      setShowEditSavedToast(true)
+      setToastVisible(true)
+      localStorage.removeItem('showEditSavedToast')
+      setTimeout(() => setToastVisible(false), 2500)
+      setTimeout(() => setShowEditSavedToast(false), 2700)
+    }
+  }, [])
 
   // Section data
   const mainSections = {
@@ -596,6 +621,52 @@ function CoverLetterPageInner() {
                 </>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+      {/* Toast Notification */}
+      {showToast && (
+        <div 
+          className="fixed bottom-24 left-4 right-4 z-50"
+          style={{
+            animation: 'slideUp 0.3s ease-out forwards'
+          }}
+        >
+          <div 
+            className="flex items-center justify-between px-6 py-3 rounded-xl text-white text-sm font-medium"
+            style={{
+              background: 'rgba(42, 42, 42, 0.95)',
+              backdropFilter: 'blur(8px)',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+          >
+            <span>Document updated</span>
+            <button 
+              onClick={() => setShowToast(false)}
+              className="ml-4 p-1 hover:bg-white/10 rounded-full transition-colors"
+            >
+              <CustomIcon name="close" size={16} className="text-white" />
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Content Saved Toast */}
+      {showEditSavedToast && (
+        <div className="fixed bottom-4 left-4 right-4 z-50 flex items-center justify-center">
+          <div className="flex items-center justify-between gap-3 pl-4 pr-3 py-3 rounded-full text-white text-sm font-medium shadow-lg backdrop-blur-xl"
+            style={{
+              background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+              outline: '1px rgba(255,255,255,0.10) solid',
+              outlineOffset: '-1px',
+              backdropFilter: 'blur(10.67px)',
+              WebkitBackdropFilter: 'blur(10.67px)'
+            }}
+          >
+            <span>Content saved</span>
+            <button onClick={() => { setToastVisible(false); setTimeout(() => setShowEditSavedToast(false), 300) }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors">
+              <CustomIcon name="close" size={16} className="text-white" />
+            </button>
           </div>
         </div>
       )}

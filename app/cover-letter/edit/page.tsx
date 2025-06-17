@@ -38,6 +38,7 @@ function EditPageContent() {
   const searchParams = useSearchParams()
   const sectionKey = searchParams ? searchParams.get('section') : null
   const coverLetterId = searchParams ? searchParams.get('coverLetter') : null
+  const from = searchParams ? searchParams.get('from') : null
   const [editContent, setEditContent] = useState<EditContent>({ title: '', bullets: [''] })
   const [showDeleteToast, setShowDeleteToast] = useState(false)
   const [bulletToDelete, setBulletToDelete] = useState<number | null>(null)
@@ -51,6 +52,7 @@ function EditPageContent() {
   const [showFeedback, setShowFeedback] = useState(false)
   const dragAnimationRef = useRef<number | null>(null)
   const bulletRefs = useRef<(HTMLTextAreaElement | null)[]>([])
+  const [initialContent, setInitialContent] = useState<EditContent | null>(null)
 
   // Dummy cover letters (same as in main page)
   const dummyCoverLetters: (DummyCoverLetter | null)[] = [
@@ -184,7 +186,7 @@ function EditPageContent() {
 
   // Initialize content based on coverLetterId and section
   useEffect(() => {
-    let section = null
+    let section: Section | null = null
     
     // First try to find in localStorage
     if (typeof window !== 'undefined' && coverLetterId) {
@@ -196,14 +198,28 @@ function EditPageContent() {
           if (session) {
             if (session.sections && sectionKey) {
               section = session.sections[sectionKey]
+              // Set the title from the section
+              setEditContent(prev => ({
+                ...prev,
+                title: section?.title || '',
+                bullets: section?.bullets || ['']
+              }))
             } else if (session.content) {
-              section = {
-                title: session.prompt || 'Cover Letter',
-                bullets: session.content
+              // Handle content-based sections
+              const contentIndex = parseInt(sectionKey || '0')
+              if (!isNaN(contentIndex) && session.content[contentIndex]) {
+                const content = session.content[contentIndex]
+                setEditContent(prev => ({
+                  ...prev,
+                  title: content.title || '',
+                  bullets: content.bullets || ['']
+                }))
               }
             }
           }
-        } catch {}
+        } catch (error) {
+          console.error('Error parsing localStorage:', error)
+        }
       }
     }
 
@@ -271,31 +287,26 @@ function EditPageContent() {
     }, 100)
   }
 
+  useEffect(() => {
+    // Set initial content after loading
+    setInitialContent({ ...editContent });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSave = () => {
-    // Save changes to localStorage if it's a history item
-    if (coverLetterId) {
-      const localHistory = localStorage.getItem('chatHistory')
-      if (localHistory) {
-        try {
-          const parsed = JSON.parse(localHistory)
-          const sessionIndex = parsed.findIndex((s: CoverLetter) => s && s.id === coverLetterId)
-          if (sessionIndex !== -1) {
-            const session = parsed[sessionIndex]
-            if (!session.sections) {
-              session.sections = {}
-            }
-            if (sectionKey) {
-              session.sections[sectionKey] = {
-                title: editContent.title,
-                bullets: editContent.bullets
-              }
-            }
-            localStorage.setItem('chatHistory', JSON.stringify(parsed))
-          }
-        } catch {}
-      }
+    // Only set toast if content has changed
+    const contentChanged = initialContent && (
+      initialContent.title !== editContent.title ||
+      JSON.stringify(initialContent.bullets) !== JSON.stringify(editContent.bullets)
+    );
+    if (contentChanged && typeof window !== 'undefined') {
+      localStorage.setItem('showEditSavedToast', 'true');
     }
-    router.back()
+    if (from) {
+      router.push(from as any)
+    } else {
+      router.back()
+    }
   }
 
   const handleClose = () => {
@@ -328,6 +339,7 @@ function EditPageContent() {
   const cancelDeleteBullet = () => {
     setShowDeleteToast(false)
     setBulletToDelete(null)
+    resetDrag()
   }
 
   const handleDragStart = (e: TouchEvent<HTMLDivElement> | MouseEvent<HTMLDivElement>, index: number) => {
@@ -693,3 +705,4 @@ export default function EditPage() {
     </Suspense>
   )
 }
+
