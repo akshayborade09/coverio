@@ -125,14 +125,16 @@ export default function SharedHistory({
       <SheetContent side="left" className="w-full max-w-full bg-white/5 backdrop-blur-xl border-none rounded-none shadow-2xl p-0 flex flex-col" style={{ WebkitBackdropFilter: 'blur(16px)', backdropFilter: 'blur(16px)' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-4 pb-4">
-          <h2 className="text-2xl font-base text-white font-playfair">History</h2>
-          <NavigationBtn
-            onClick={onClose}
-            ariaLabel="Close history drawer"
-            size={40}
-          >
-            <CustomIcon name="close" size={20} className="text-[#ffffff]" />
-          </NavigationBtn>
+          <div className="flex items-center gap-3">
+            <NavigationBtn
+              onClick={onClose}
+              ariaLabel="Close history drawer"
+              size={48}
+            >
+              <CustomIcon name="close" size={20} className="text-[#ffffff]" />
+            </NavigationBtn>
+            <h2 className="text-2xl font-base text-white font-playfair">History</h2>
+          </div>
         </div>
 
         {/* History List */}

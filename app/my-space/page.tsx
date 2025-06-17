@@ -2,6 +2,7 @@
 
 import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
+import Image from "next/image"
 
 export default function MySpacePage() {
   const documents = [
@@ -97,14 +98,14 @@ export default function MySpacePage() {
       <div className="flex flex-col min-h-screen text-white relative pb-24">
         {/* Profile Section */}
         <div className="flex flex-col items-center py-8">
-          <div className="w-24 h-24 rounded-full bg-[#dec53b] flex items-center justify-center mb-4">
-            <div className="flex flex-col items-center">
-              <div className="flex gap-2 mb-2">
-                <div className="w-2 h-2 bg-black rounded-full"></div>
-                <div className="w-2 h-2 bg-black rounded-full"></div>
-              </div>
-              <div className="w-8 h-2 bg-black rounded-full"></div>
-            </div>
+          <div className="w-24 h-24 rounded-full overflow-hidden mb-4">
+            <Image
+              src="/Images/avatar-01.svg"
+              alt="Profile"
+              width={96}
+              height={96}
+              className="w-full h-full object-cover"
+            />
           </div>
           <h1 className="text-2xl mb-1 font-playfair">Akshay Borhade</h1>
           <p className="text-white opacity-70 font-playfair">UX Team Lead @ OLA</p>

@@ -412,7 +412,7 @@ function EditPageContent() {
                             }
                           }
                         }, 0)
-                      } else {
+      }
         // Second deletion: Actually remove the empty bullet - no toast needed
                         newBullets.splice(index, 1)
                         if (draggedBullet === index) {
@@ -432,7 +432,6 @@ function EditPageContent() {
                             }
                           }
                         }, 50)
-                      }
                     } else {
                       // Update the bullet content
                       newBullets[index] = newValue

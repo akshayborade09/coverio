@@ -3,10 +3,31 @@
 import React, { useState, useEffect, useRef, Suspense } from "react"
 import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
-import BottomNavigation from "@/components/BottomNavigation"
 import CustomIcon from "@/components/CustomIcon"
 import SharedHistory from "@/components/SharedHistory"
 import { useRouter, useSearchParams } from "next/navigation"
+import NavigationBtn from "@/components/NavigationBtn"
+import type { Route } from "next"
+
+interface Document {
+  type: string
+  name: string
+}
+
+function getFileIcon(type: string) {
+  switch (type) {
+    case "pdf":
+      return "/Images/space-pdf.svg"
+    case "doc":
+      return "/Images/space-doc.svg"
+    case "img":
+      return "/Images/space-doc.svg"
+    case "link":
+      return "/Images/space-link.svg"
+    default:
+      return "/Images/space-doc.svg"
+  }
+}
 
 interface Section {
   title: string
@@ -18,6 +39,7 @@ interface CoverLetter {
   prompt?: string
   sections?: Record<string, Section>
   content?: string[]
+  documents?: { type: string; name: string }[]
 }
 
 const dummyCoverLetters = [
@@ -79,9 +101,17 @@ function CoverLetterPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isScrollable, setIsScrollable] = useState(false)
-
-  // Get session id from query
+  const from = searchParams?.get('from')
   const sessionId = searchParams?.get('id')
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<{ type: string; name: string } | null>(null)
+
+  const handleBack = () => {
+    // Go back to homepage and open history drawer
+    router.push('/')
+    // Set history state in localStorage to be picked up by homepage
+    localStorage.setItem('showHistory', 'true')
+  }
 
   // Find session in localStorage or mockHistory
   let session = null
@@ -309,20 +339,13 @@ function CoverLetterPageInner() {
         }} />
           {/* History Tab */}
           <div className="relative z-10">
-            <button
-              className="w-12 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
-              style={{
-                background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.15) 0%, rgba(113.69, 113.69, 113.69, 0.12) 95%)',
-                boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
-                borderRadius: '44.45px',
-                outline: '1px rgba(255,255,255,0.10) solid',
-                outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
-              }}
-              onClick={() => setShowHistory(true)}
+            <NavigationBtn
+              onClick={handleBack}
+              ariaLabel="Go back"
+              size={48}
             >
-              <CustomIcon name="history" size={20} className="text-white" />
-            </button>
+              <CustomIcon name="back" size={20} className="text-[#ffffff]" />
+            </NavigationBtn>
           </div>
           {/* Action buttons */}
           <div className="flex gap-3 relative z-10">
@@ -409,6 +432,34 @@ function CoverLetterPageInner() {
               </div>
             );
           })}
+          {/* Document icons */}
+          {session?.documents && session.documents.length > 0 && (
+            <div className="flex items-center gap-2 mt-1">
+              {session.documents.slice(0, 4).map((doc: Document, idx: number) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setSelectedDocument(doc)
+                    setShowDocumentPreview(true)
+                  }}
+                  className="p-1 rounded hover:bg-white/10 transition-colors"
+                >
+                  <img
+                    src={getFileIcon(doc.type)}
+                    alt={doc.type}
+                    width={24}
+                    height={24}
+                    className="rounded shadow"
+                  />
+                </button>
+              ))}
+              {session.documents.length > 4 && (
+                <span className="text-white text-xs font-semibold bg-black/30 px-2 py-1.5 rounded-full">
+                  +{session.documents.length - 4}
+                </span>
+              )}
+            </div>
+          )}
           </div>
         </main>
         {/* Feedback Toast */}
@@ -424,9 +475,67 @@ function CoverLetterPageInner() {
             </div>
           </div>
         )}
-      {/* Bottom Navigation outside transformed container */}
-      <BottomNavigation />
       <SharedHistory open={showHistory} onClose={() => setShowHistory(false)} type="cover-letter" />
+      {/* Document Preview Modal */}
+      {showDocumentPreview && selectedDocument && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 max-w-2xl w-full mx-4 relative">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <img
+                  src={getFileIcon(selectedDocument.type)}
+                  alt={selectedDocument.type}
+                  width={24}
+                  height={24}
+                  className="rounded"
+                />
+                <h3 className="text-white text-lg font-medium">{selectedDocument.name}</h3>
+              </div>
+              <button
+                onClick={() => setShowDocumentPreview(false)}
+                className="p-2 rounded-full hover:bg-white/10 transition-colors"
+              >
+                <CustomIcon name="close" size={20} className="text-white" />
+              </button>
+            </div>
+            <div className="bg-black/20 rounded-xl p-4 h-[60vh] overflow-y-auto">
+              {selectedDocument.type === 'pdf' && (
+                <iframe
+                  src={`/documents/${selectedDocument.name}`}
+                  className="w-full h-full rounded-lg"
+                  title={selectedDocument.name}
+                />
+              )}
+              {selectedDocument.type === 'doc' && (
+                <div className="text-white text-center py-8">
+                  <CustomIcon name="document" size={48} className="text-white/50 mb-4" />
+                  <p>Document preview not available</p>
+                </div>
+              )}
+              {selectedDocument.type === 'img' && (
+                <img
+                  src={`/documents/${selectedDocument.name}`}
+                  alt={selectedDocument.name}
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              )}
+              {selectedDocument.type === 'link' && (
+                <div className="text-white text-center py-8">
+                  <CustomIcon name="link2" size={48} className="text-white/50 mb-4" />
+                  <a
+                    href={selectedDocument.name}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline"
+                  >
+                    Open Link
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

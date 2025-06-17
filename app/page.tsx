@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import CustomIcon from "@/components/CustomIcon"
@@ -13,6 +13,15 @@ export default function CoverIoApp() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [showHistory, setShowHistory] = useState(false)
+
+  // Check for showHistory in localStorage on mount
+  useEffect(() => {
+    const shouldShowHistory = localStorage.getItem('showHistory')
+    if (shouldShowHistory === 'true') {
+      setShowHistory(true)
+      localStorage.removeItem('showHistory')
+    }
+  }, [])
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -41,7 +50,7 @@ export default function CoverIoApp() {
     
     switch (chip) {
       case 'Cover Letter':
-        router.push('/chat?from=write')
+        router.push('/chat?from=cover-letter')
         break
       case 'Company Research':
       case 'Interviewer Research':
@@ -83,11 +92,14 @@ export default function CoverIoApp() {
         </div>
 
         {/* Profile Avatar */}
-        <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-[#dec53b] flex items-center justify-center overflow-hidden z-10">
-          <div className="flex flex-col items-center">
-            <div className="w-1 h-1 bg-black rounded-full mb-1"></div>
-            <div className="w-4 h-1 bg-black rounded-full"></div>
-          </div>
+        <div className="absolute top-4 right-4 w-12 h-12 rounded-full overflow-hidden z-10">
+          <Image
+            src="/Images/avatar-01.svg"
+            alt="Profile"
+            width={48}
+            height={48}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         {/* Main Content */}
