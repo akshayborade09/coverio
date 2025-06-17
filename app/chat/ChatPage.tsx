@@ -95,7 +95,7 @@ export default function ChatPage() {
     // Show waiting prompt after delay if no attachment
     if (!attachedFile) {
       setShowWaitingPrompt(false);
-      setTimeout(() => setShowWaitingPrompt(true), 1200);
+      setTimeout(() => setShowWaitingPrompt(true), 200);
     } else {
       setShowWaitingPrompt(false);
     }
