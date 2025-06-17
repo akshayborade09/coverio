@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import CustomIcon from '../../components/CustomIcon'
 
 interface UIMessage {
@@ -13,6 +13,7 @@ interface UIMessage {
 
 export default function ChatPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isInputFocused, setIsInputFocused] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -34,23 +35,33 @@ export default function ChatPage() {
   }, [messages])
 
   useEffect(() => {
-    // Check if there's a selected chip from localStorage
-    const selectedChip = localStorage.getItem('selectedChip')
-    if (selectedChip) {
-      setInput(selectedChip)
-      // Clear the localStorage
-      localStorage.removeItem('selectedChip')
-      // Focus the input after a longer delay to ensure it's rendered and keyboard opens
+    // Check if there's a chip value in the query parameter
+    const chip = searchParams.get('chip')
+    if (chip) {
+      setInput(chip)
+      // Focus the input immediately to maximize mobile keyboard reliability
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus()
-          // Force focus and selection to ensure keyboard opens on mobile
           inputRef.current.click()
           inputRef.current.setSelectionRange(inputRef.current.value.length, inputRef.current.value.length)
         }
-      }, 300)
+      }, 0)
     }
-  }, [])
+  }, [searchParams])
+
+  // Fallback: tap anywhere to focus input if it has value and is not focused
+  useEffect(() => {
+    function handleTapToFocus(e: MouseEvent) {
+      if (input && inputRef.current && document.activeElement !== inputRef.current) {
+        inputRef.current.focus()
+        inputRef.current.click()
+        inputRef.current.setSelectionRange(inputRef.current.value.length, inputRef.current.value.length)
+      }
+    }
+    document.addEventListener('click', handleTapToFocus)
+    return () => document.removeEventListener('click', handleTapToFocus)
+  }, [input])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,38 +98,38 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#181818]">
+    <div className="flex flex-col h-screen bg-[#0d0c0c]">
       {/* Back Button */}
-      <div className="fixed top-0 left-0 right-0 h-20 z-30">
+      <div className="fixed top-0 left-0 right-0 h-20 z-30 bg-[#0d0c0c]">
         {/* Progressive blur layers */}
         <div className="absolute inset-0" style={{
           // backdropFilter: 'blur(8px)',
-          background: 'linear-gradient(to bottom, rgba(24,24,24,1) 0%, rgba(24,24,24,1) 20%, rgba(24,24,24,0.8) 40%, rgba(24,24,24,0.6) 60%, rgba(24,24,24,0) 100%)'
+          background: 'linear-gradient(to bottom, rgba(13,12,12,1) 0%, rgba(13,12,12,1) 20%, rgba(13,12,12,0.8) 40%, rgba(13,12,12,0.6) 60%, rgba(13,12,12,0) 100%)'
         }}></div>
         <div className="absolute inset-0" style={{
           backdropFilter: 'blur(0px)',
-          background: 'linear-gradient(to bottom, rgba(24,24,24,0) 0%, rgba(24,24,24,0.6) 25%, rgba(24,24,24,0.4) 50%, rgba(24,24,24,0) 75%)'
+          background: 'linear-gradient(to bottom, rgba(13,12,12,0) 0%, rgba(13,12,12,0.6) 25%, rgba(13,12,12,0.4) 50%, rgba(13,12,12,0) 75%)'
         }}></div>
         <div className="absolute inset-0" style={{
           backdropFilter: 'blur(0px)',
-          background: 'linear-gradient(to bottom, rgba(24,24,24,0) 0%, rgba(24,24,24,0.3) 50%, rgba(24,24,24,0.1) 75%, rgba(24,24,24,0) 100%)'
+          background: 'linear-gradient(to bottom, rgba(13,12,12,0) 0%, rgba(13,12,12,0.3) 50%, rgba(13,12,12,0.1) 75%, rgba(13,12,12,0) 100%)'
         }}></div>
         <div className="absolute top-4 left-4">
-          <button
+            <button
             className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{
+              style={{
               background: 'linear-gradient(137deg, rgba(255,255,255,0) 0%, rgba(113,113,113,0.19) 40%)',
-              borderRadius: '44.45px',
+                borderRadius: '44.45px',
               outline: '1px rgba(255,255,255,0.10) solid',
               outlineOffset: '-1px',
               backdropFilter: 'blur(10.67px)'
-            }}
+              }}
             onClick={() => router.back()}
-          >
+            >
             <CustomIcon name="back" size={24} className="text-white" />
-          </button>
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-40 pt-20">
@@ -137,7 +148,17 @@ export default function ChatPage() {
               {/* Attachment above bubble for user messages */}
               {message.attachment && message.role === 'user' && (
                 <div className="mb-1 flex flex-col items-end">
-                  <div className="relative w-16 h-16 flex items-center justify-center bg-[#222] rounded-lg outline outline-1 outline-white/10 overflow-hidden">
+                  <div className="relative w-16 h-16 flex flex-col items-center justify-center overflow-hidden"
+                    style={{
+                      borderRadius: '16px',
+                      background: message.attachment.type.includes('pdf')
+                        ? '#FF4B4B'
+                        : message.attachment.type.includes('doc')
+                        ? '#3BB3FF'
+                        : message.attachment.type.includes('xls')
+                        ? '#3BCB7F'
+                        : '#222',
+                    }}>
                     {message.attachment.type.startsWith('image/') ? (
                       <img
                         src={URL.createObjectURL(message.attachment)}
@@ -145,9 +166,27 @@ export default function ChatPage() {
                         className="object-cover w-16 h-16"
                       />
                     ) : (
-                      <CustomIcon name="document" size={40} className="text-white opacity-80" />
+                      <span className="text-white font-bold text-lg select-none">
+                        {message.attachment.type.includes('pdf') && 'PDF'}
+                        {message.attachment.type.includes('doc') && 'DOC'}
+                        {message.attachment.type.includes('xls') && 'XLS'}
+                        {!message.attachment.type.match(/pdf|doc|xls/) && 'FILE'}
+                      </span>
                     )}
+                    <button
+                      type="button"
+                      className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-white/30 rounded-full text-white hover:bg-white/50"
+                      onClick={() => setAttachedFile(null)}
+                      style={{ zIndex: 2 }}
+                    >
+                      <span className="text-lg leading-none">×</span>
+                    </button>
                   </div>
+                  {!message.attachment.type.startsWith('image/') && (
+                    <span className="text-white text-xs mt-1 px-1 truncate w-16 text-center select-none opacity-50" title={message.attachment.name}>
+                      {message.attachment.name}
+                    </span>
+                  )}
                 </div>
               )}
               {message.content && (
@@ -174,11 +213,11 @@ export default function ChatPage() {
                           <CustomIcon name="document" size={40} className="text-white opacity-80" />
                         )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                      </div>
+                    )}
+                      </div>
+                    )}
+                  </div>
           ))}
         </div>
         {isLoading && (
@@ -193,12 +232,12 @@ export default function ChatPage() {
                 <span className="text-sm opacity-60">Thinking...</span>
               </div>
             </div>
-          </div>
-        )}
+            </div>
+          )}
         <div ref={messagesEndRef} />
-      </div>
+        </div>
       {/* Input Area - Fixed at Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 pt-4 pb-8 bg-[#181818] z-20">
+      <div className="fixed bottom-0 left-0 right-0 px-4 pt-4 pb-8 bg-[#0d0c0c] z-20">
         {/* File input outside the form to avoid form submission issues */}
         <input
           type="file"
@@ -221,7 +260,17 @@ export default function ChatPage() {
             {/* Attachment Preview (first row) */}
             {attachedFile && (
               <div className="flex flex-col items-start mb-3">
-                <div className="relative w-16 h-16 flex items-center justify-center bg-[#222] rounded-lg outline outline-1 outline-white/10 overflow-hidden">
+                <div className="relative w-16 h-16 flex flex-col items-center justify-center overflow-hidden"
+                  style={{
+                    borderRadius: '16px',
+                    background: attachedFile.type.includes('pdf')
+                      ? '#FF4B4B'
+                      : attachedFile.type.includes('doc')
+                      ? '#3BB3FF'
+                      : attachedFile.type.includes('xls')
+                      ? '#3BCB7F'
+                      : '#222',
+                  }}>
                   {attachedFile.type.startsWith('image/') ? (
                     <img
                       src={URL.createObjectURL(attachedFile)}
@@ -229,17 +278,27 @@ export default function ChatPage() {
                       className="object-cover w-16 h-16"
                     />
                   ) : (
-                    <CustomIcon name="document" size={40} className="text-white opacity-80" />
+                    <span className="text-white font-bold text-lg select-none">
+                      {attachedFile.type.includes('pdf') && 'PDF'}
+                      {attachedFile.type.includes('doc') && 'DOC'}
+                      {attachedFile.type.includes('xls') && 'XLS'}
+                      {!attachedFile.type.match(/pdf|doc|xls/) && 'FILE'}
+                    </span>
                   )}
                   <button
                     type="button"
-                    className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center bg-black/70 rounded-full text-white hover:bg-black"
-                    style={{ transform: 'translate(30%,-30%)' }}
+                    className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-white/30 rounded-full text-white hover:bg-white/50"
                     onClick={() => setAttachedFile(null)}
+                    style={{ zIndex: 2 }}
                   >
-                    <CustomIcon name="close" size={14} />
+                    <span className="text-lg leading-none">×</span>
                   </button>
                 </div>
+                {!attachedFile.type.startsWith('image/') && (
+                  <span className="text-white text-xs mt-1 px-1 truncate w-16 text-center select-none opacity-50" title={attachedFile.name}>
+                    {attachedFile.name}
+                  </span>
+                )}
               </div>
             )}
             {/* Icons Row (third row) */}
@@ -261,7 +320,7 @@ export default function ChatPage() {
                 }}
               />
               <div className="flex items-center justify-between w-full">
-                <button 
+                <button
                   type="button"
                   className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
                   style={{
@@ -275,25 +334,25 @@ export default function ChatPage() {
                 >
                   <CustomIcon name="attach" size={24} className="text-white" />
                 </button>
-                <button 
+              <button 
                   type="submit"
                   disabled={(!input.trim() && !attachedFile) || isLoading}
                   className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{
+                style={{
                     background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
-                    borderRadius: '44.45px',
+                  borderRadius: '44.45px',
                     outline: '1px rgba(255,255,255,0.10) solid',
                     outlineOffset: '-1px',
                     backdropFilter: 'blur(10.67px)'
                   }}
                 >
                   <CustomIcon name="send" size={24} className="text-white" />
-                </button>
-              </div>
+              </button>
+            </div>
             </div>
           </div>
         </form>
+        </div>
       </div>
-    </div>
   )
-}
+} 

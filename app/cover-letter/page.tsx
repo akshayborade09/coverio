@@ -105,6 +105,7 @@ function CoverLetterPageInner() {
   const sessionId = searchParams?.get('id')
   const [showDocumentPreview, setShowDocumentPreview] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<{ type: string; name: string } | null>(null)
+  const [showDocsModal, setShowDocsModal] = useState(false)
 
   const handleBack = () => {
     // Go back to homepage and open history drawer
@@ -260,8 +261,8 @@ function CoverLetterPageInner() {
     setTimeout(() => setShowFeedback(false), 2000)
   }
 
-  const handleSummarise = () => {
-    showFeedbackMessage('Generating cover letter summary...')
+  const handleDocs = () => {
+    setShowDocsModal(true)
   }
 
   const handlePlay = () => {
@@ -327,7 +328,7 @@ function CoverLetterPageInner() {
   }
 
   return (
-      <div className="flex flex-col min-h-screen overflow-hidden cover-letter-page">
+      <div className="flex flex-col min-h-screen overflow-hidden cover-letter-page bg-[#0d0c0c]">
         {/* Fixed Header */}
         <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-between px-4 relative">
           {/* Progressive blur overlay */}
@@ -351,7 +352,7 @@ function CoverLetterPageInner() {
           <div className="flex gap-3 relative z-10">
             <button
               className="flex items-center gap-2 px-4 py-2 transition-all duration-200 hover:scale-105 active:scale-95"
-              onClick={handleSummarise}
+              onClick={handleDocs}
               style={{
                 background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
                 borderRadius: '44.45px',
@@ -360,8 +361,8 @@ function CoverLetterPageInner() {
                 backdropFilter: 'blur(10.67px)'
               }}
             >
-              <CustomIcon name="summarise" size={20} />
-              <span>Summarise</span>
+              <CustomIcon name="document" size={20} />
+              <span>Docs</span>
             </button>
           {/* <button
               className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
@@ -532,6 +533,68 @@ function CoverLetterPageInner() {
                   </a>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Docs Modal */}
+      {showDocsModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+          onClick={() => setShowDocsModal(false)}
+        >
+          <div
+            className="glassmorphic-card rounded-2xl px-4 py-3 max-w-md w-full mx-4 relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-lg font-bold font-playfair">Documents</h2>
+              <button
+                onClick={() => setShowDocsModal(false)}
+                className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                  borderRadius: '44.45px',
+                  outline: '1px rgba(255,255,255,0.10) solid',
+                  outlineOffset: '-1px',
+                  backdropFilter: 'blur(10.67px)'
+                }}
+              >
+                <CustomIcon name="close" size={20} className="text-[#ffffff]" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              {/* Random document list */}
+              {[
+                { name: 'Resume2024.pdf', type: 'pdf' },
+                { name: 'JobDesc.docx', type: 'doc' },
+                { name: 'Portfolio.xls', type: 'xls' },
+                { name: 'ProfilePic.png', type: 'img' },
+                { name: 'https://linkedin.com/in/xyz', type: 'link' },
+              ].map((doc, idx, arr) => (
+                <>
+                  <div key={doc.name} className="flex items-center gap-3 rounded-lg py-2">
+                    <img
+                      src={
+                        doc.type === 'pdf' ? '/Images/space-pdf.svg'
+                        : doc.type === 'doc' ? '/Images/space-doc.svg'
+                        : doc.type === 'xls' ? '/Images/space-doc.svg'
+                        : doc.type === 'img' ? '/Images/space-doc.svg'
+                        : doc.type === 'link' ? '/Images/space-link.svg'
+                        : '/Images/space-doc.svg'
+                      }
+                      alt={doc.type}
+                      width={28}
+                      height={28}
+                      className="rounded shadow"
+                    />
+                    <span className="text-white text-sm truncate font-open-sauce-one opacity-50">{doc.name}</span>
+                  </div>
+                  {idx < arr.length - 1 && (
+                    <div className="h-px bg-white/5 w-full" />
+                  )}
+                </>
+              ))}
             </div>
           </div>
         </div>

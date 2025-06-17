@@ -45,20 +45,8 @@ export default function CoverIoApp() {
   }
 
   const handleChipClick = (chip: string) => {
-    // Store the chip text in localStorage to be used in chat interface
-    localStorage.setItem('selectedChip', chip)
-    
-    switch (chip) {
-      case 'Cover Letter':
-        router.push('/chat?from=cover-letter')
-        break
-      case 'Company Research':
-      case 'Interviewer Research':
-        router.push('/chat?from=research')
-        break
-      default:
-        router.push(`/chat?topic=${encodeURIComponent(chip)}`)
-    }
+    // Pass the chip text as a query parameter for chat interface
+    router.push(`/chat?chip=${encodeURIComponent(chip)}`)
   }
 
   return (
@@ -92,7 +80,11 @@ export default function CoverIoApp() {
         </div>
 
         {/* Profile Avatar */}
-        <div className="absolute top-4 right-4 w-12 h-12 rounded-full overflow-hidden z-10">
+        <button
+          className="absolute top-4 right-4 w-12 h-12 rounded-full overflow-hidden z-10 p-0 border-0 bg-transparent"
+          onClick={() => router.push('/my-space')}
+          aria-label="Open My Space"
+        >
           <Image
             src="/Images/avatar-01.svg"
             alt="Profile"
@@ -100,7 +92,7 @@ export default function CoverIoApp() {
             height={48}
             className="w-full h-full object-cover"
           />
-        </div>
+        </button>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-32">

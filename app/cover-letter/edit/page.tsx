@@ -651,7 +651,7 @@ function EditPageContent() {
           }}>
             <span className="text-white text-sm font-medium flex-1">Delete the bullet point?</span>
             <div className="flex items-center gap-2">
-              <button onClick={confirmDeleteBullet} className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full transition-colors">Confirm</button>
+              <button onClick={confirmDeleteBullet} className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-full transition-colors">Confirm</button>
               <button onClick={cancelDeleteBullet} className="w-8 h-8 flex items-center justify-center text-white opacity-70 hover:opacity-100 transition-opacity" style={{
                 background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                 borderRadius: '20px',
