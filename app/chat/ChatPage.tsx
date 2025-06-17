@@ -41,7 +41,7 @@ export default function ChatPage() {
     // Check if there's a chip value in the query parameter
     const chip = searchParams.get('chip')
     if (chip) {
-      setInput(chip)
+      setInput(`Create a ${chip} of`)
       // Focus the input immediately to maximize mobile keyboard reliability
       setTimeout(() => {
         if (inputRef.current) {
