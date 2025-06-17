@@ -124,6 +124,9 @@ export default function ChatPage() {
     return false;
   })();
 
+  // Helper to check if any message has an attachment
+  const hasAnyDocument = messages.some(msg => msg.attachment);
+
   return (
     <div className="flex flex-col h-screen bg-[#0d0c0c]">
       {/* Back Button */}
@@ -237,8 +240,8 @@ export default function ChatPage() {
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   </div>
                 )}
-                {/* Show prompt only for the last user message without attachment */}
-                {message.role === 'user' && message.content && !message.attachment && isLastUserMessage && showWaitingPrompt && (
+                {/* Show prompt only for the last user message without attachment, and only if no document in chat */}
+                {message.role === 'user' && message.content && !message.attachment && isLastUserMessage && showWaitingPrompt && !hasAnyDocument && (
                   <div className="mt-6 w-full flex items-center gap-2 justify-start">
                     <PuffLoader size={22} color="#fff" speedMultiplier={1.2} />
                     <TextShimmer className="font-open-sauce-one text-sm text-white/70" duration={1}>
