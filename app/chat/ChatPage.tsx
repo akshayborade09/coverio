@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import CustomIcon from '../../components/CustomIcon'
 import { TextShimmer } from '@/components/core/text-shimmer'
+import { PuffLoader } from 'react-spinners'
 
 interface UIMessage {
   id: string
@@ -23,6 +24,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [showWaitingPrompt, setShowWaitingPrompt] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -86,8 +88,17 @@ export default function ChatPage() {
     const textarea = document.querySelector('textarea');
     if (textarea) {
       textarea.style.height = '24px';
+      textarea.blur(); // Close the keyboard on mobile
     }
     setIsLoading(true);
+
+    // Show waiting prompt after delay if no attachment
+    if (!attachedFile) {
+      setShowWaitingPrompt(false);
+      setTimeout(() => setShowWaitingPrompt(true), 1200);
+    } else {
+      setShowWaitingPrompt(false);
+    }
 
     try {
       // ... existing code ...
@@ -227,9 +238,10 @@ export default function ChatPage() {
                   </div>
                 )}
                 {/* Show prompt only for the last user message without attachment */}
-                {message.role === 'user' && message.content && !message.attachment && isLastUserMessage && (
-                  <div className="mt-6 w-full flex justify-start">
-                    <TextShimmer className="font-open-sauce-one text-[12px] text-white/70" duration={1}>
+                {message.role === 'user' && message.content && !message.attachment && isLastUserMessage && showWaitingPrompt && (
+                  <div className="mt-6 w-full flex items-center gap-2 justify-start">
+                    <PuffLoader size={22} color="#fff" speedMultiplier={1.2} />
+                    <TextShimmer className="font-open-sauce-one text-sm text-white/70" duration={1}>
                       Waiting for your insightful content and documents
                     </TextShimmer>
                   </div>
