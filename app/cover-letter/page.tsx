@@ -8,6 +8,7 @@ import SharedHistory from "@/components/SharedHistory"
 import { useRouter, useSearchParams } from "next/navigation"
 import NavigationBtn from "@/components/NavigationBtn"
 import type { Route } from "next"
+import { createPortal } from 'react-dom';
 
 interface Document {
   type: string
@@ -91,6 +92,16 @@ const coverLetterTitles = [
   'Summarize my experience for a product manager position.',
   "Research about Tesla's company culture."
 ]
+
+function ToastPortal({ children }: { children: React.ReactNode }) {
+  if (typeof window === 'undefined') return null;
+  return createPortal(children, document.body);
+}
+
+function DocsModalPortal({ children }: { children: React.ReactNode }) {
+  if (typeof window === 'undefined') return null;
+  return createPortal(children, document.body);
+}
 
 function CoverLetterPageInner() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
@@ -352,6 +363,20 @@ function CoverLetterPageInner() {
     }
   }
 
+  useEffect(() => {
+    if (showDocsModal) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [showDocsModal]);
+
   return (
       <div className="flex flex-col min-h-screen overflow-hidden cover-letter-page bg-[#0d0c0c]">
         {/* Fixed Header */}
@@ -492,12 +517,12 @@ function CoverLetterPageInner() {
         {showFeedback && (
           <div className="fixed bottom-24 left-4 right-4 z-50">
             <div className="flex items-center justify-center">
-            <div className="px-6 py-3 rounded-xl text-white text-sm font-medium" style={{
-                  background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
-                  outline: '1px rgba(255,255,255,0.10) solid',
-                  outlineOffset: '-1px',
-                  backdropFilter: 'blur(10.67px)'
-            }}>{feedbackMessage}</div>
+              <div className="px-6 py-3 rounded-xl text-white text-sm font-medium" style={{
+                background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                outline: '1px rgba(255,255,255,0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)',
+              }}>{feedbackMessage}</div>
             </div>
           </div>
         )}
@@ -562,67 +587,68 @@ function CoverLetterPageInner() {
           </div>
         </div>
       )}
-      {/* Docs Modal */}
+      {/* Docs Modal - now rendered in a portal */}
       {showDocsModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
-          onClick={() => setShowDocsModal(false)}
-        >
+        <DocsModalPortal>
           <div
-            className="glassmorphic-card rounded-2xl px-4 py-3 max-w-md w-full mx-4 relative"
-            onClick={e => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+            onClick={() => setShowDocsModal(false)}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-lg font-bold font-playfair">Documents</h2>
-              <button
-                onClick={() => setShowDocsModal(false)}
-                className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{
-                  background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
-                  borderRadius: '44.45px',
-                  outline: '1px rgba(255,255,255,0.10) solid',
-                  outlineOffset: '-1px',
-                  backdropFilter: 'blur(10.67px)'
-                }}
-              >
-                <CustomIcon name="close" size={20} className="text-[#ffffff]" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              {/* Random document list */}
-              {[
-                { name: 'Resume2024.pdf', type: 'pdf' },
-                { name: 'JobDesc.docx', type: 'doc' },
-                { name: 'Portfolio.xls', type: 'xls' },
-                { name: 'ProfilePic.png', type: 'img' },
-                { name: 'https://linkedin.com/in/xyz', type: 'link' },
-              ].map((doc, idx, arr) => (
-                <>
-                  <div key={doc.name} className="flex items-center gap-3 rounded-lg py-2">
-                    <img
-                      src={
-                        doc.type === 'pdf' ? '/Images/space-pdf.svg'
-                        : doc.type === 'doc' ? '/Images/space-doc.svg'
-                        : doc.type === 'xls' ? '/Images/space-doc.svg'
-                        : doc.type === 'img' ? '/Images/space-doc.svg'
-                        : doc.type === 'link' ? '/Images/space-link.svg'
-                        : '/Images/space-doc.svg'
-                      }
-                      alt={doc.type}
-                      width={28}
-                      height={28}
-                      className="rounded shadow"
-                    />
-                    <span className="text-white text-sm truncate font-open-sauce-one opacity-50">{doc.name}</span>
-                  </div>
-                  {idx < arr.length - 1 && (
-                    <div className="h-px bg-white/5 w-full" />
-                  )}
-                </>
-              ))}
+            <div
+              className="glassmorphic-card rounded-2xl px-4 py-3 max-w-md w-full mx-4 relative"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-white text-lg font-bold font-playfair">Documents</h2>
+                <button
+                  onClick={() => setShowDocsModal(false)}
+                  className="w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+                  style={{
+                    background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                    borderRadius: '44.45px',
+                    outline: '1px rgba(255,255,255,0.10) solid',
+                    backdropFilter: 'blur(10.67px)'
+                  }}
+                >
+                  <CustomIcon name="close" size={20} className="text-[#ffffff]" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                {/* Random document list */}
+                {[
+                  { name: 'Resume2024.pdf', type: 'pdf' },
+                  { name: 'JobDesc.docx', type: 'doc' },
+                  { name: 'Portfolio.xls', type: 'xls' },
+                  { name: 'ProfilePic.png', type: 'img' },
+                  { name: 'https://linkedin.com/in/xyz', type: 'link' },
+                ].map((doc, idx, arr) => (
+                  <React.Fragment key={doc.name}>
+                    <div className="flex items-center gap-3 rounded-lg py-2">
+                      <img
+                        src={
+                          doc.type === 'pdf' ? '/Images/space-pdf.svg'
+                          : doc.type === 'doc' ? '/Images/space-doc.svg'
+                          : doc.type === 'xls' ? '/Images/space-doc.svg'
+                          : doc.type === 'img' ? '/Images/space-doc.svg'
+                          : doc.type === 'link' ? '/Images/space-link.svg'
+                          : '/Images/space-doc.svg'
+                        }
+                        alt={doc.type}
+                        width={28}
+                        height={28}
+                        className="rounded shadow"
+                      />
+                      <span className="text-white text-sm truncate font-open-sauce-one opacity-50">{doc.name}</span>
+                    </div>
+                    {idx < arr.length - 1 && (
+                      <div className="h-px bg-white/5 w-full" />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </DocsModalPortal>
       )}
       {/* Toast Notification */}
       {showToast && (
@@ -651,24 +677,25 @@ function CoverLetterPageInner() {
           </div>
         </div>
       )}
-      {/* Content Saved Toast */}
       {showEditSavedToast && (
-        <div className="fixed bottom-4 left-4 right-4 z-50 flex items-center justify-center">
-          <div className="flex items-center justify-between gap-3 pl-4 pr-3 py-3 rounded-full text-white text-sm font-medium shadow-lg backdrop-blur-xl"
-            style={{
-              background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
-              outline: '1px rgba(255,255,255,0.10) solid',
-              outlineOffset: '-1px',
-              backdropFilter: 'blur(10.67px)',
-              WebkitBackdropFilter: 'blur(10.67px)'
-            }}
-          >
-            <span>Content saved</span>
-            <button onClick={() => { setToastVisible(false); setTimeout(() => setShowEditSavedToast(false), 300) }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors">
-              <CustomIcon name="close" size={16} className="text-white" />
-            </button>
+        <ToastPortal>
+          <div className={`fixed left-1/2 -translate-x-1/2 bottom-10 z-[9999] flex items-center justify-center transition-transform duration-500 ${toastVisible ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0'}`} style={{ pointerEvents: toastVisible ? 'auto' : 'none' }}>
+            <div className="flex items-center justify-between gap-3 pl-4 pr-3 py-3 rounded-full text-white text-sm font-medium shadow-lg backdrop-blur-xl"
+              style={{
+                background: 'linear-gradient(137deg, rgba(255,255,255,0.23) 0%, rgba(113,113,113,0.19) 40%)',
+                outline: '1px rgba(255,255,255,0.10) solid',
+                outlineOffset: '-1px',
+                backdropFilter: 'blur(10.67px)',
+                WebkitBackdropFilter: 'blur(10.67px)'
+              }}
+            >
+              <span>Content saved</span>
+              <button onClick={() => { setToastVisible(false); setTimeout(() => setShowEditSavedToast(false), 300) }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors">
+                <CustomIcon name="close" size={16} className="text-white" />
+              </button>
+            </div>
           </div>
-        </div>
+        </ToastPortal>
       )}
     </div>
   )
