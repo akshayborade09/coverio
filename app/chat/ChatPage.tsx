@@ -127,6 +127,11 @@ export default function ChatPage() {
   // Helper to check if any message has an attachment
   const hasAnyDocument = messages.some(msg => msg.attachment);
 
+  // Scroll to bottom when messages or waiting prompt changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, showWaitingPrompt])
+
   return (
     <div className="flex flex-col h-screen bg-[#0d0c0c]">
       {/* Back Button */}
@@ -184,11 +189,13 @@ export default function ChatPage() {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-40 pt-20">
+      <div className={`flex-1 p-4 space-y-4 pb-44 pt-20 ${messages.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center text-white opacity-60">
-            <h1 className="text-2xl font-bold mb-2 font-playfair">Need a document? Just ask</h1>
-            <p className="text-gray-400 font-open-sauce">Our AI agent creates it instantly</p>
+          <div className="flex flex-col items-center justify-center text-center text-white opacity-60 pointer-events-none select-none h-full" style={{ overflow: 'hidden' }}>
+            <div className="flex flex-col items-center justify-center flex-1 h-full">
+              <h1 className="text-2xl font-bold mb-2 font-playfair">Need a document? Just ask</h1>
+              <p className="text-gray-400 font-open-sauce">Our AI agent creates it instantly</p>
+            </div>
           </div>
         )}
         <div className="flex flex-col gap-2">
