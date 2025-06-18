@@ -169,16 +169,16 @@ export default function ChatPage() {
         {lastUserMessageWithAttachment && (
           <div className="absolute top-4 right-4">
             <button
-              className="px-3 h-12 flex items-center justify-center rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+              className="px-5 h-12 flex items-center justify-center rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
               style={{
                 minWidth: '110px',
                 fontSize: '1rem',
-                background: 'linear-gradient(137deg, rgba(255,255,255,0) 0%, rgba(113,113,113,0.19) 40%)',
+                background: 'linear-gradient(90deg, rgba(15, 128, 3, 0.5) 0%, rgba(60, 125, 0, 0.3) 100%)', 
                 borderRadius: '44.45px',
-                outline: '1px rgba(255,255,255,0.10) solid',
+                outline: '1px rgba(255,255,255,0.05) solid',
                 outlineOffset: '-1px',
-                backdropFilter: 'blur(10.67px)',
-                WebkitBackdropFilter: 'blur(10.67px)'
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3px)'
               }}
               onClick={handleGenerate}
             >
