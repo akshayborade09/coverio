@@ -147,8 +147,9 @@ export default function SharedHistory({
               role="button"
               tabIndex={0}
               style={{
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
+                background: 'linear-gradient(15deg, rgba(255,255,255,0.04) 10%, rgba(255, 255, 255, 0) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.04) 100%)',
+                // backdropFilter: 'blur(px)',
+                // WebkitBackdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 255, 255, 0.05)'
               }}
             >
