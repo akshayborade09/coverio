@@ -60,7 +60,7 @@ export default function CoverIoApp() {
         className="hidden"
       />
       
-      <div className="fixed inset-0 flex flex-col text-[#ffffff] overflow-hidden">
+      <div className="fixed inset-0 flex flex-col text-[#ffffff] overflow-hidden bg-[#0d0c0c]">
         {/* History Tab */}
         <div className="absolute top-4 left-4 z-10">
           <button

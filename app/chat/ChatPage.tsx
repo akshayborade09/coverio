@@ -183,18 +183,9 @@ export default function ChatPage() {
       {/* Back Button */}
       <div className="fixed top-0 left-0 right-0 h-20 z-30">
         {/* Progressive blur layers */}
-        <div className="absolute inset-0" style={{
-          // backdropFilter: 'blur(8px)',
-          background: 'linear-gradient(to bottom, rgba(13,12,12,1) 0%, rgba(13,12,12,1) 20%, rgba(13,12,12,0.8) 40%, rgba(13,12,12,0.6) 60%, rgba(13,12,12,0) 100%)'
-        }}></div>
-        <div className="absolute inset-0" style={{
-          backdropFilter: 'blur(0px)',
-          background: 'linear-gradient(to bottom, rgba(13,12,12,0) 0%, rgba(13,12,12,0.6) 25%, rgba(13,12,12,0.4) 50%, rgba(13,12,12,0) 75%)'
-        }}></div>
-        <div className="absolute inset-0" style={{
-          backdropFilter: 'blur(0px)',
-          background: 'linear-gradient(to bottom, rgba(13,12,12,0) 0%, rgba(13,12,12,0.3) 50%, rgba(13,12,12,0.1) 75%, rgba(13,12,12,0) 100%)'
-        }}></div>
+        <div className="absolute inset-0" style={{ background: '#0d0c0c' }}></div>
+        <div className="absolute inset-0" style={{ background: 'transparent' }}></div>
+        <div className="absolute inset-0" style={{ background: 'transparent' }}></div>
         {/* Back Button on the left */}
         <div className="absolute top-4 left-4 flex items-center gap-2">
           <button

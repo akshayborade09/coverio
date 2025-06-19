@@ -45,7 +45,7 @@ export default function BottomNavigation({}: BottomNavigationProps) {
         <div 
           className="p-[1px] rounded-[991.36px] inline-flex w-full"
           style={{
-            background: 'linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 60%)',
+            background: 'linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.1) 60%)',
           }}
         >
           <div 
@@ -86,7 +86,7 @@ export default function BottomNavigation({}: BottomNavigationProps) {
                     className="flex-1 h-12 p-3 rounded-full flex justify-center items-center gap-1.5"
                     style={{
                       background: active 
-                        ? 'linear-gradient(137deg, rgba(255, 255, 255, 0.77) 0%, rgba(113.69, 113.69, 113.69, 0.62) 95%)'
+                        ? 'linear-gradient(137deg, rgba(255, 255, 255, 0.5) 0%, rgba(113.69, 113.69, 113.69, 0.62) 95%)'
                         : 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
                       boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
                       borderRadius: '44.45px',

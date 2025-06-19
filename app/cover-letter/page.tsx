@@ -405,14 +405,8 @@ function CoverLetterPageInner() {
   return (
       <div className="flex flex-col min-h-screen overflow-hidden cover-letter-page bg-[#0d0c0c]">
         {/* Fixed Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-between px-4 relative">
-          {/* Progressive blur overlay */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
-        }} />
+        <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-between px-4 relative" style={{ background: '#0d0c0c' }}>
+          {/* No overlay */}
           {/* History Tab */}
           <div className="relative z-10">
             <NavigationBtn
