@@ -89,7 +89,7 @@ const dummyCoverLetters = [
 
 const coverLetterTitles = [
   'Write a cover letter for a software engineer role at Google.',
-  'Summarize my experience for a product manager position.',
+  'Summary of experience for a product manager position.',
   "Research about Tesla's company culture."
 ]
 
@@ -108,7 +108,6 @@ function CoverLetterPageInner() {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const contentRef = useRef<HTMLElement | null>(null)
-  const pdfContentRef = useRef<HTMLDivElement | null>(null)
   const [showHistory, setShowHistory] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -307,8 +306,6 @@ function CoverLetterPageInner() {
 
   const handleShare = async () => {
     try {
-      if (!pdfContentRef.current) return
-
       // Show loading message
       showFeedbackMessage('Generating PDF...')
 
@@ -316,46 +313,74 @@ function CoverLetterPageInner() {
       const pdf = new jsPDF('p', 'pt', 'a4')
       const pageWidth = pdf.internal.pageSize.getWidth()
       const pageHeight = pdf.internal.pageSize.getHeight()
-      const margin = 40
+      const margin = 50
+      const lineHeight = 20
+      const sectionSpacing = 30
 
-      // Get all section elements
-      const sectionElements = Array.from(pdfContentRef.current.getElementsByClassName('pdf-section'))
-      let currentY = margin
+      // Set font styles
+      pdf.setFont('helvetica', 'bold')
+      pdf.setFontSize(18)
+      
+      // Add title
+      const title = session?.prompt || coverLetterTitles[session === dummyCoverLetters[0] ? 0 : 1]
+      pdf.text(title, margin, margin + 20)
 
-      for (const section of sectionElements) {
-        // Capture each section separately
-        const canvas = await html2canvas(section as HTMLElement, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff'
+      let currentY = margin + 60
+
+      // Add sections
+      if (selectedSections && Object.keys(selectedSections).length > 0) {
+        Object.entries(selectedSections).forEach(([key, section]) => {
+          const sec = section as Section
+          
+          // Check if we need a new page
+          if (currentY > pageHeight - 100) {
+            pdf.addPage()
+            currentY = margin
+          }
+
+          // Add section title
+          if (sec.title) {
+            pdf.setFont('helvetica', 'bold')
+            pdf.setFontSize(14)
+            pdf.text(sec.title, margin, currentY)
+            currentY += lineHeight + 10
+          }
+
+          // Add section content
+          pdf.setFont('helvetica', 'normal')
+          pdf.setFontSize(11)
+          
+          sec.bullets.forEach((bullet: string) => {
+            // Check if we need a new page
+            if (currentY > pageHeight - 50) {
+              pdf.addPage()
+              currentY = margin
+            }
+
+            // Split long text into multiple lines
+            const maxWidth = pageWidth - (2 * margin)
+            const lines = pdf.splitTextToSize(bullet, maxWidth)
+            
+            lines.forEach((line: string) => {
+              if (currentY > pageHeight - 50) {
+                pdf.addPage()
+                currentY = margin
+              }
+              pdf.text(line, margin, currentY)
+              currentY += lineHeight
+            })
+            
+            currentY += 5 // Add space between bullets
+          })
+
+          currentY += sectionSpacing
         })
-
-        // Calculate dimensions
-        const imgWidth = pageWidth - (2 * margin)
-        const imgHeight = (canvas.height * imgWidth) / canvas.width
-
-        // Check if we need a new page
-        if (currentY + imgHeight > pageHeight - margin) {
-          pdf.addPage()
-          currentY = margin
-        }
-
-        // Add the section to PDF
-        pdf.addImage(
-          canvas.toDataURL('image/png'),
-          'PNG',
-          margin,
-          currentY,
-          imgWidth,
-          imgHeight
-        )
-
-        // Update Y position
-        currentY += imgHeight + 20 // Add some space between sections
       }
 
-      // Save PDF
-      pdf.save('cover-letter.pdf')
+      // Save PDF with a meaningful name
+      const fileName = `cover-letter-${Date.now()}.pdf`
+      pdf.save(fileName)
+      
       showFeedbackMessage('Cover letter downloaded as PDF!')
     } catch (error) {
       console.error('Error generating PDF:', error)
