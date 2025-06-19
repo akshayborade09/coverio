@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import CustomIcon from '../../components/CustomIcon'
 import { TextShimmer } from '@/components/core/text-shimmer'
 import { PuffLoader } from 'react-spinners'
+import { useCustomToast } from '@/components/Toast'
 
 interface UIMessage {
   id: string
@@ -25,6 +26,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [showWaitingPrompt, setShowWaitingPrompt] = useState(false)
+  const { showDocumentGeneration } = useCustomToast()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -110,8 +112,52 @@ export default function ChatPage() {
   }
 
   const handleGenerate = () => {
-    // Placeholder: implement generation logic here
-    alert('Generate action triggered!');
+    // Use the document generation toast
+    showDocumentGeneration({
+      onComplete: () => {
+        // Placeholder: implement actual generation logic here
+        console.log('Document generation completed!');
+        // You can add navigation to the generated document or other logic here
+      }
+    });
+  };
+
+  const handleAttachmentTap = (attachment: File) => {
+    // Handle attachment tap - could open in new tab, show preview, etc.
+    if (attachment.type.startsWith('image/')) {
+      // For images, open in new tab
+      const url = URL.createObjectURL(attachment);
+      window.open(url, '_blank');
+    } else {
+      // For other files, could trigger download or show preview
+      console.log('Opening attachment:', attachment.name);
+      // You could implement file preview logic here
+    }
+  };
+
+  const handleMessageTap = (message: UIMessage) => {
+    // Handle message tap - could copy to clipboard, show options, etc.
+    if (message.content) {
+      // Copy message content to clipboard
+      navigator.clipboard.writeText(message.content).then(() => {
+        console.log('Message copied to clipboard');
+        // Could show a toast notification here
+      });
+    }
+  };
+
+  const handleEmptyStateTap = () => {
+    // Focus the input when tapping the empty state
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleInputAreaTap = () => {
+    // Focus input when tapping the input area
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   // Determine if the last user message has an attachment
@@ -173,7 +219,7 @@ export default function ChatPage() {
               style={{
                 minWidth: '110px',
                 fontSize: '1rem',
-                background: 'linear-gradient(90deg, rgba(15, 128, 3, 0.5) 0%, rgba(60, 125, 0, 0.3) 100%)', 
+                background: 'linear-gradient(180deg, rgba(12, 31, 98, 0.5) 0%, rgba(16, 79, 137, 0.3) 100%)', 
                 borderRadius: '44.45px',
                 outline: '1px rgba(255,255,255,0.05) solid',
                 outlineOffset: '-1px',
@@ -182,7 +228,7 @@ export default function ChatPage() {
               }}
               onClick={handleGenerate}
             >
-              <span className="text-white">Generate</span>
+              <span className="text-white">Generate document</span>
             </button>
           </div>
         )}
@@ -191,7 +237,11 @@ export default function ChatPage() {
       {/* Messages Area */}
       <div className={`flex-1 p-4 space-y-4 pb-44 pt-20 ${messages.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center text-center text-white opacity-60 pointer-events-none select-none h-full" style={{ overflow: 'hidden' }}>
+          <div 
+            className="flex flex-col items-center justify-center text-center text-white opacity-60 select-none h-full cursor-pointer transition-opacity hover:opacity-80 active:opacity-100" 
+            style={{ overflow: 'hidden' }}
+            onClick={handleEmptyStateTap}
+          >
             <div className="flex flex-col items-center justify-center flex-1 h-full">
               <h1 className="text-2xl font-bold mb-2 font-playfair">Need a document? Just ask</h1>
               <p className="text-gray-400 font-open-sauce">Our AI agent creates it instantly</p>
@@ -211,7 +261,8 @@ export default function ChatPage() {
                 {/* Document thumbnail above message */}
                 {message.attachment && (
                   <div className="mb-1 flex flex-col items-end">
-                    <div className="relative w-16 h-16 flex flex-col items-center justify-center overflow-hidden"
+                    <div 
+                      className="relative w-16 h-16 flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-transform hover:scale-105 active:scale-95"
                       style={{
                         borderRadius: '16px',
                         background: message.attachment.type.includes('pdf')
@@ -221,13 +272,23 @@ export default function ChatPage() {
                           : message.attachment.type.includes('xls')
                           ? '#3BCB7F'
                           : '#222',
-                      }}>
-                      <span className="text-white font-bold text-lg select-none">
-                        {message.attachment.type.includes('pdf') && 'PDF'}
-                        {message.attachment.type.includes('doc') && 'DOC'}
-                        {message.attachment.type.includes('xls') && 'XLS'}
-                        {!message.attachment.type.match(/pdf|doc|xls/) && 'FILE'}
-                      </span>
+                      }}
+                      onClick={() => handleAttachmentTap(message.attachment!)}
+                    >
+                      {message.attachment.type.startsWith('image/') ? (
+                        <img
+                          src={URL.createObjectURL(message.attachment)}
+                          alt={message.attachment.name}
+                          className="object-cover w-16 h-16"
+                        />
+                      ) : (
+                        <span className="text-white font-bold text-lg select-none">
+                          {message.attachment.type.includes('pdf') && 'PDF'}
+                          {message.attachment.type.includes('doc') && 'DOC'}
+                          {message.attachment.type.includes('xls') && 'XLS'}
+                          {!message.attachment.type.match(/pdf|doc|xls/) && 'FILE'}
+                        </span>
+                      )}
                     </div>
                     <span className="text-white text-[10px] mt-1 px-1 truncate w-16 text-center select-none opacity-50" title={message.attachment.name}>
                       {message.attachment.name}
@@ -237,23 +298,31 @@ export default function ChatPage() {
                 {/* Message content */}
                 {message.content && (
                   <div
-                    className={`max-w-[80%] p-3 ${
+                    className={`max-w-[80%] p-3 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] ${
                       message.role === 'user'
                         ? 'bg-[#2a2a2a] text-white'
                         : 'bg-[#2a2a2a]/80 text-white'
                     }`}
                     style={{ borderRadius: '24px' }}
+                    onClick={() => handleMessageTap(message)}
                   >
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   </div>
                 )}
                 {/* Show prompt only for the last user message without attachment, and only if no document in chat */}
                 {message.role === 'user' && message.content && !message.attachment && isLastUserMessage && showWaitingPrompt && !hasAnyDocument && (
-                  <div className="mt-6 w-full flex items-center gap-2 justify-start">
-                    <PuffLoader size={22} color="#fff" speedMultiplier={1.2} />
-                    <TextShimmer className="font-open-sauce-one text-sm text-white/70" duration={1}>
-                      Waiting for your insightful content and documents
-                    </TextShimmer>
+                  <div className="mt-6 w-full flex flex-col gap-2 justify-start">
+                    <div className="flex items-center gap-2">
+                      <PuffLoader size={22} color="#fff" speedMultiplier={1.2} />
+                      <TextShimmer className="font-open-sauce-one text-sm text-white/70" duration={1}>
+                        Waiting for your insightful content and documents
+                      </TextShimmer>
+                    </div>
+                    <div className="mt-2">
+                      <TextShimmer className="font-open-sauce-one text-xs font-light text-white/50 leading-relaxed" duration={1}>
+                        Please add some documents with the details about your requirement and AI create a document for you
+                      </TextShimmer>
+                    </div>
                   </div>
                 )}
               </div>
@@ -262,7 +331,7 @@ export default function ChatPage() {
         </div>
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-[#202020] text-white p-3 rounded-2xl">
+            <div className="bg-[#202020] text-white p-3 rounded-2xl cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]">
               <div className="flex items-center gap-2">
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-white opacity-60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -272,8 +341,8 @@ export default function ChatPage() {
                 <span className="text-sm opacity-60">Thinking...</span>
               </div>
             </div>
-            </div>
-          )}
+          </div>
+        )}
         <div ref={messagesEndRef} />
         </div>
       {/* Input Area - Fixed at Bottom */}
@@ -288,7 +357,7 @@ export default function ChatPage() {
         />
         <form onSubmit={handleSubmit} className="relative">
           <div 
-            className={`flex flex-col p-3 rounded-2xl transition-colors ${
+            className={`flex flex-col p-3 rounded-2xl transition-colors cursor-text ${
               isInputFocused ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]'
             }`}
             style={{
@@ -296,11 +365,13 @@ export default function ChatPage() {
               outlineOffset: '-1px',
               minHeight: attachedFile ? '120px' : undefined,
             }}
+            onClick={handleInputAreaTap}
           >
             {/* Attachment Preview (first row) */}
             {attachedFile && (
               <div className="flex flex-col items-start mb-3">
-                <div className="relative w-16 h-16 flex flex-col items-center justify-center overflow-hidden"
+                <div 
+                  className="relative w-16 h-16 flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   style={{
                     borderRadius: '16px',
                     background: attachedFile.type.includes('pdf')
@@ -310,7 +381,9 @@ export default function ChatPage() {
                       : attachedFile.type.includes('xls')
                       ? '#3BCB7F'
                       : '#222',
-                  }}>
+                  }}
+                  onClick={() => handleAttachmentTap(attachedFile)}
+                >
                   {attachedFile.type.startsWith('image/') ? (
                     <img
                       src={URL.createObjectURL(attachedFile)}
@@ -327,18 +400,19 @@ export default function ChatPage() {
                   )}
                   <button
                     type="button"
-                    className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-white/30 rounded-full text-white hover:bg-white/50"
-                    onClick={() => setAttachedFile(null)}
+                    className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-white/30 rounded-full text-white hover:bg-white/50 transition-all duration-200 hover:scale-110 active:scale-95"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the parent click
+                      setAttachedFile(null);
+                    }}
                     style={{ zIndex: 2 }}
                   >
                     <span className="text-lg leading-none">×</span>
                   </button>
                 </div>
-                {!attachedFile.type.startsWith('image/') && (
-                  <span className="text-white text-[10px] mt-1 px-1 truncate w-16 text-center select-none opacity-50" title={attachedFile.name}>
-                    {attachedFile.name}
-                  </span>
-                )}
+                <span className="text-white text-[10px] mt-1 px-1 truncate w-16 text-center select-none opacity-50" title={attachedFile.name}>
+                  {attachedFile.name}
+                </span>
               </div>
             )}
             {/* Icons Row (third row) */}

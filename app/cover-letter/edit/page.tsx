@@ -654,7 +654,7 @@ function EditPageContent() {
       {/* Delete Confirmation Toast */}
       {showDeleteToast && (
         <div className="fixed bottom-20 left-4 right-4 z-10">
-          <div className="flex items-center justify-between gap-3 px-3 py-3 rounded-full" style={{
+          <div className="flex items-center justify-between gap-3 pl-4 pr-3 py-3 rounded-full" style={{
             background: 'linear-gradient(137deg, rgba(255, 255, 255, 0.23) 0%, rgba(113.69, 113.69, 113.69, 0.19) 40%)',
             boxShadow: '0px 0.8890371322631836px 21.336891174316406px -0.8890371322631836px rgba(0, 0, 0, 0.18)',
             outline: '1px rgba(255, 255, 255, 0.10) solid',

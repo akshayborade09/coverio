@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import LandscapeMessage from '@/components/LandscapeMessage'
+import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
   title: 'Cover.io',
@@ -37,7 +39,11 @@ export default function RootLayout({
         <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="HandheldFriendly" content="true" />
       </head>
-      <body className="overscroll-none">{children}</body>
+      <body className="overscroll-none">
+        {children}
+        <LandscapeMessage />
+        <Toaster />
+      </body>
     </html>
   )
 }
