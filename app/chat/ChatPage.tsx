@@ -115,9 +115,9 @@ export default function ChatPage() {
     // Use the document generation toast
     showDocumentGeneration({
       onComplete: () => {
-        // Placeholder: implement actual generation logic here
+        // Navigate to cover letter ID 1 after generation completes
         console.log('Document generation completed!');
-        // You can add navigation to the generated document or other logic here
+        router.push('/cover-letter?id=1');
       }
     });
   };
@@ -320,7 +320,7 @@ export default function ChatPage() {
                     </div>
                     <div className="mt-2">
                       <TextShimmer className="font-open-sauce-one text-xs font-light text-white/50 leading-relaxed" duration={1}>
-                        Please add some documents with the details about your requirement and AI create a document for you
+                        Please add some documents with the details about your requirement and AI will create a document for you
                       </TextShimmer>
                     </div>
                   </div>
